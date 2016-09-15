@@ -186,5 +186,5 @@ This software is licensed under the `MIT license`_.
 .. _per user site-packages directory: https://www.python.org/dev/peps/pep-0370/
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/npm-accel
-.. _Read the Docs: https://github.com/xolox/python-npm-accel
+.. _Read the Docs: https://npm-accel.readthedocs.io/en/latest/
 .. _virtual environments: http://docs.python-guide.org/en/latest/dev/virtualenvs/
