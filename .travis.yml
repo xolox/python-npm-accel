@@ -1,3 +1,4 @@
+sudo: true
 language: python
 python:
   - "2.6"
@@ -9,6 +10,8 @@ install:
   - pip install pip-accel
   - pip-accel install coveralls
   - pip-accel install --requirement=requirements-checks.txt
+  - pip-accel install debuntu-tools
+  - debuntu-nodejs-installer --install
   - LC_ALL=C pip-accel install .
 script:
   - make check
