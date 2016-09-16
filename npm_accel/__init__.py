@@ -7,6 +7,7 @@
 """Accelerator for npm, the Node.js package manager."""
 
 # Standard library modules.
+from distutils.spawn import find_executable
 import codecs
 import copy
 import hashlib
@@ -104,8 +105,13 @@ class NpmAccel(PropertyManager):
 
     @cached_property
     def nodejs_version(self):
-        """The output of the ``nodejs --version`` command (a string)."""
-        return self.context.capture('nodejs', '--version')
+        """The output of the ``nodejs --version`` or ```node --version`` command (a string)."""
+        if find_executable('nodejs'):
+            return self.context.capture('nodejs', '--version')
+        elif find_executable('node'):
+            return self.context.capture('node', '--version')
+        else:
+            raise NodeBinaryNotFoundError("Missing nodejs/node binary!")
 
     @cached_property
     def npm_version(self):
@@ -453,3 +459,8 @@ def auto_decode(text):
 class MissingPackageFileError(Exception):
 
     """Raised when the given directory doesn't contain a ``package.json`` file."""
+
+
+class NodeBinaryNotFoundError(Exception):
+
+    """Raised when either nodejs or node binary is not found in ``PATH``."""

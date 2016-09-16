@@ -86,7 +86,7 @@ from humanfriendly import parse_path
 from humanfriendly.terminal import usage, warning
 
 # Modules included in our package.
-from npm_accel import MissingPackageFileError, NpmAccel
+from npm_accel import MissingPackageFileError, NodeBinaryNotFoundError, NpmAccel
 
 # Initialize a logger for this module.
 logger = logging.getLogger(__name__)
@@ -147,7 +147,7 @@ def main():
         accelerator = NpmAccel(**program_opts)
         method = getattr(accelerator, action)
         method(directory)
-    except MissingPackageFileError as e:
+    except (MissingPackageFileError, NodeBinaryNotFoundError) as e:
         warning("Error: %s", e)
         sys.exit(1)
     except Exception:
