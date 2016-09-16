@@ -8,13 +8,22 @@ npm-accel: Accelerator for npm, the Node.js package manager
    :target: https://coveralls.io/r/xolox/python-npm-accel?branch=master
 
 The npm-accel program is a wrapper for npm_ (the Node.js_ package manager) that
-optimizes one specific use case: Building a node_modules_ directory from a
-package.json_ file as quickly as possible. It works on the assumption that you
-build node_modules directories more frequently then you change the contents of
-package.json files, because it computes a fingerprint of the dependencies and
-uses that fingerprint as a cache key, to cache the complete node_modules
-directory in a tar archive. The npm-accel project is currently tested on Python
-2.6, 2.7, 3.4, 3.5 and PyPy (yes, it's written in Python, deal with it :-P).
+was created to optimize **one specific use case**: Creating a node_modules_
+directory from a package.json_ file as quickly as possible.
+
+It works on the assumption that you build node_modules directories more
+frequently then you change the contents of package.json files, because it
+computes a fingerprint of the dependencies and uses that fingerprint as a cache
+key, to cache the complete node_modules directory in a tar archive.
+
+The program is intended to be used in environments that always or frequently
+start with an empty node_modules directory and need to populate the complete
+directory from scratch (e.g. continuous integration builds and deployments).
+I'm specifically not claiming that you will see any speed improvements if
+you're updating existing node_modules directories.
+
+The npm-accel program is currently tested on Python 2.6, 2.7, 3.4, 3.5 and PyPy
+(yes, it's written in Python, deal with it :-P).
 
 .. contents::
    :local:
@@ -33,7 +42,9 @@ careful not to repeat the bugs I encountered in npm-cache_ and
 npm-fast-install_ while evaluating those tools :-).
 
 To summarize: Give it a try, see if it actually speeds up your ``npm install``
-commands and then decide whether you want to use it or not.
+use case and then decide whether you want to use it or not. The first releases
+of npm-accel are labeled as `alpha releases`_ because the program hasn't seen
+much real world use (and I'm no expert in Node.js and npm).
 
 Performance
 -----------
@@ -54,6 +65,20 @@ npm-cache install npm        2/2  2 minutes and 9 seconds      134.3%
 npm-fast-install             1/2  1 minute and 5 seconds        72.2%
 npm-fast-install             2/2  1 minute and 6 seconds        73.3%
 =====================  =========  =======================  ==========
+
+Some notes about this benchmark:
+
+- Each of the four installation methods is run twice. The first run starts with
+  empty cache directories and is intended to "prime the cache". The second run
+  is intended to actually use the cache and should be able to do so quite
+  effectively, given that the package.json file does not change between the two
+  runs.
+
+- During the benchmark, the caching performed by npm-accel is only used in the
+  fourth row of the table above. This is because the original point of the
+  benchmark (for me) was to find out whether it was even worth it to develop
+  and publish npm-accel. That is to say, if it wouldn't have given a speed
+  improvement it wasn't worth my time, nor yours :-P.
 
 Installation
 ------------
@@ -107,8 +132,8 @@ It works on the assumption that you build "node_modules" directories more freque
    ""npm"" (the default), ""npm-cache"" and ""npm-fast-install""."
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
    "``-n``, ``--no-cache``","Disallow writing to the cache managed by npm-accel (reading is still
-   allowed though). This option doesn't disable the caching that's done by
-   npm-cache and npm-fast-install internally."
+   allowed though). This option does not disable caching performed by
+   npm-cache and npm-fast-install."
    "``-b``, ``--benchmark``","Benchmark and compare the following installation methods:
    
    1. npm install
@@ -175,6 +200,7 @@ This software is licensed under the `MIT license`_.
 
 
 .. External references:
+.. _alpha releases: https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha
 .. _GitHub: https://github.com/xolox/python-npm-accel
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
 .. _Node.js: https://nodejs.org/en/
