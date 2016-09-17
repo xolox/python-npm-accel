@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: September 15, 2016
+# Last Change: September 17, 2016
 # URL: https://github.com/xolox/python-npm-accel
 
 """Test suite for the `npm-accel` package."""
@@ -26,6 +26,7 @@ from humanfriendly import Timer
 # Modules included in our package.
 from npm_accel import NpmAccel
 from npm_accel.cli import main
+from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreterError
 
 # Initialize a logger for this module.
 logger = logging.getLogger(__name__)
@@ -42,7 +43,24 @@ class NpmAccelTestCase(unittest.TestCase):
     def test_missing_package_file_error(self):
         """Make sure an error is raised when the ``package.json`` file is missing."""
         with TemporaryDirectory() as project_directory:
-            assert run_cli(project_directory) != 0
+            accelerator = NpmAccel(context=create_context())
+            self.assertRaises(MissingPackageFileError, accelerator.install, project_directory)
+
+    def test_node_binary_not_found_error(self):
+        """Make sure an error is raised when the Node.js interpreter is missing."""
+        saved_path = os.environ.get('PATH', None)
+        try:
+            # Temporarily override the search path to remove all /usr/*
+            # directories where a Node.js interpreter can reasonably be
+            # expected to be installed.
+            os.environ['PATH'] = '/sbin:/bin'
+            accelerator = NpmAccel(context=create_context())
+            self.assertRaises(MissingNodeInterpreterError, getattr, accelerator, 'nodejs_interpreter')
+        finally:
+            if saved_path is not None:
+                os.environ['PATH'] = saved_path
+            else:
+                os.environ.pop('PATH')
 
     def test_multiple_arguments_error(self):
         """Make sure that multiple positional arguments raise an error."""

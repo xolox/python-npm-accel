@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: September 16, 2016
+# Last Change: September 17, 2016
 # URL: https://github.com/xolox/python-npm-accel
 
 """Accelerator for npm, the Node.js package manager."""
@@ -22,8 +22,11 @@ from humanfriendly.text import pluralize
 from property_manager import PropertyManager, cached_property, mutable_property, required_property
 from verboselogs import VerboseLogger
 
+# Modules included in our package.
+from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreterError
+
 # Semi-standard module versioning.
-__version__ = '0.2'
+__version__ = '0.3'
 
 # Initialize a logger for this program.
 logger = VerboseLogger(__name__)
@@ -103,9 +106,42 @@ class NpmAccel(PropertyManager):
         return self.installer_name != 'npm-cache'
 
     @cached_property
+    def nodejs_interpreter(self):
+        """
+        The name of the Node.js interpreter (a string).
+
+        The official name of the Node.js interpreter is simply ``node``,
+        however on Debian based systems this name conflicts with another
+        program provided by a system package (ax25-node_) which predates the
+        existence of the Node.js interpreter. For this reason Debian calls the
+        Node.js interpreter ``nodejs`` instead.
+
+        This property first checks whether the ``nodejs`` program is available
+        (because it is the less ambiguous name of the two) and if that fails it
+        will check if the ``node`` program is available.
+
+        :raises: :exc:`.MissingNodeInterpreterError` when neither of the
+                 expected programs is available.
+
+        .. _ax25-node: https://packages.debian.org/ax25-node
+        """
+        logger.debug("Discovering name of Node.js interpreter ..")
+        for interpreter in 'nodejs', 'node':
+            logger.debug("Checking availability of program: %s", interpreter)
+            if self.context.test('which', interpreter):
+                logger.debug("Found name of Node.js interpreter: %s", interpreter)
+                return interpreter
+        raise MissingNodeInterpreterError("Missing Node.js interpreter! (expected to find 'nodejs' or 'node')")
+
+    @cached_property
     def nodejs_version(self):
-        """The output of the ``nodejs --version`` command (a string)."""
-        return self.context.capture('nodejs', '--version')
+        """
+        The output of the ``nodejs --version`` or ```node --version`` command (a string).
+
+        :raises: :exc:`.MissingNodeInterpreterError` when neither of the
+                 expected programs is available.
+        """
+        return self.context.capture(self.nodejs_interpreter, '--version')
 
     @cached_property
     def npm_version(self):
@@ -149,7 +185,7 @@ class NpmAccel(PropertyManager):
 
         :param package_file: The pathname of the file (a string).
         :returns: A dictionary with the relevant dependencies.
-        :raises: :exc:`MissingPackageFileError` when the given directory
+        :raises: :exc:`.MissingPackageFileError` when the given directory
                  doesn't contain a ``package.json`` file.
 
         If no dependencies are extracted from the ``package.json`` file
@@ -448,8 +484,3 @@ def auto_decode(text):
         result = detect(text)
         encoding = result['encoding']
     return codecs.decode(text, encoding)
-
-
-class MissingPackageFileError(Exception):
-
-    """Raised when the given directory doesn't contain a ``package.json`` file."""

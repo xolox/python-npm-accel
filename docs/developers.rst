@@ -20,3 +20,9 @@ the `npm-accel` package.
 
 .. automodule:: npm_accel.cli
    :members:
+
+:mod:`npm_accel.exceptions`
+---------------------------
+
+.. automodule:: npm_accel.exceptions
+   :members:
