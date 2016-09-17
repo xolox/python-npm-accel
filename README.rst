@@ -96,6 +96,8 @@ system wide) and I have no intention of getting into that discussion here, so
 if this intimidates you then read up on your options before returning to these
 instructions ;-).
 
+Alternatively if you are running Arch Linux, npm-accel is `available in AUR`_.
+
 Usage
 -----
 
@@ -201,6 +203,7 @@ This software is licensed under the `MIT license`_.
 
 .. External references:
 .. _alpha releases: https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha
+.. _available in AUR: https://aur.archlinux.org/packages/npm-accel/
 .. _GitHub: https://github.com/xolox/python-npm-accel
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
 .. _Node.js: https://nodejs.org/en/
