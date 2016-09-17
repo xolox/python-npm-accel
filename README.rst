@@ -23,7 +23,9 @@ I'm specifically not claiming that you will see any speed improvements if
 you're updating existing node_modules directories.
 
 The npm-accel program is currently tested on Python 2.6, 2.7, 3.4, 3.5 and PyPy
-(yes, it's written in Python, deal with it :-P).
+(yes, it's written in Python, deal with it :-P). It's intended to work on UNIX
+systems like Linux and Mac OS X and specifically won't work on Windows (see
+`supported operating systems`_ for details).
 
 .. contents::
    :local:
@@ -185,6 +187,25 @@ Future improvements
  while browsing through the package.json_ documentation. Maybe these should be
  part of the computed cache keys aswell?
 
+.. _supported operating systems:
+
+Supported operating systems
+---------------------------
+
+The npm-accel program was developed to work on UNIX systems like Linux and Mac
+OS X. It requires several external commands to be installed (e.g. ``mkdir``,
+``mv``, ``rm``, ``tar`` and ``which``).
+
+I've tried to keep all of the external command invocations compatible with the
+Linux and BSD variants of commands like tar_, that is to say npm-accel uses
+only short options and skips the more esoteric features even if they would be
+useful. If you find that I failed in this respect, please feel free to report
+this as a bug.
+
+For posterity: It was a conscious decision (for several reasons) to use the
+tar_ program instead of manipulating tar archives via Python's `tarfile
+module`_.
+
 Contact
 -------
 
@@ -216,4 +237,6 @@ This software is licensed under the `MIT license`_.
 .. _peter@peterodding.com: peter@peterodding.com
 .. _PyPI: https://pypi.python.org/pypi/npm-accel
 .. _Read the Docs: https://npm-accel.readthedocs.io/en/latest/
+.. _tar: https://en.wikipedia.org/wiki/Tar_(computing)
+.. _tarfile module: https://docs.python.org/2/library/tarfile.html
 .. _virtual environments: http://docs.python-guide.org/en/latest/dev/virtualenvs/

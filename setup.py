@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: September 9, 2016
+# Last Change: September 17, 2016
 # URL: https://github.com/xolox/python-npm-accel
 
 """Setup script for the `npm-accel` package."""
@@ -67,6 +67,11 @@ setup(
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Operating System :: POSIX :: BSD',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: Unix',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
