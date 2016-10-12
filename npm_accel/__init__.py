@@ -319,7 +319,7 @@ class NpmAccel(PropertyManager):
         cache_metadata['last-accessed'] = int(time.time())
         cache_metadata['cache-hits'] = cache_metadata.get('cache-hits', 0) + 1
         with self.context.atomic_write(metadata_file) as temporary_file:
-            self.context.write_file(temporary_file, json.dumps(cache_metadata))
+            self.context.write_file(temporary_file, json.dumps(cache_metadata).encode('UTF-8'))
 
     def read_metadata(self, file_in_cache):
         """
@@ -332,7 +332,7 @@ class NpmAccel(PropertyManager):
         """
         metadata_file = self.get_metadata_file(file_in_cache)
         if self.context.is_file(metadata_file):
-            return json.loads(self.context.read_file(metadata_file))
+            return json.loads(auto_decode(self.context.read_file(metadata_file)))
         else:
             return {}
 
