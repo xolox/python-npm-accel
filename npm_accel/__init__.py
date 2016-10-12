@@ -27,7 +27,7 @@ from verboselogs import VerboseLogger
 from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreterError
 
 # Semi-standard module versioning.
-__version__ = '0.3.1'
+__version__ = '0.4'
 
 # Initialize a logger for this program.
 logger = VerboseLogger(__name__)
