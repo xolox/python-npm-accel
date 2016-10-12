@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: September 17, 2016
+# Last Change: October 12, 2016
 # URL: https://github.com/xolox/python-npm-accel
 
 """Accelerator for npm, the Node.js package manager."""
@@ -12,7 +12,8 @@ import copy
 import hashlib
 import json
 import os
-import random
+import re
+import time
 
 # External dependencies.
 from chardet import detect
@@ -96,6 +97,11 @@ class NpmAccel(PropertyManager):
                 else parse_path('~/.cache/npm-accel'))
 
     @mutable_property
+    def cache_limit(self):
+        """The maximum number of tar archives to preserve in the cache (an integer, defaults to 20)."""
+        return 20
+
+    @mutable_property
     def read_from_cache(self):
         """:data:`True` if npm-accel is allowed to read from its cache, :data:`False` otherwise."""
         return self.installer_name != 'npm-cache'
@@ -175,6 +181,7 @@ class NpmAccel(PropertyManager):
                     self.add_to_cache(modules_directory, file_in_cache)
                 logger.info("Done! Took %s to install %s using npm.",
                             timer, pluralize(len(dependencies), "dependency", "dependencies"))
+            self.clean_cache()
         else:
             logger.info("Nothing to do! (no dependencies to install)")
         return dependencies
@@ -240,6 +247,15 @@ class NpmAccel(PropertyManager):
         logger.debug("Computed cache key is %s.", cache_key)
         return cache_key
 
+    def get_metadata_file(self, file_in_cache):
+        """
+        Get the name of the metadata file for a given file in the cache.
+
+        :param file_in_cache: The pathname of the archive in the cache (a string).
+        :returns: The absolute pathname of the metadata file (a string).
+        """
+        return re.sub(r'\.tar$', '.json', file_in_cache)
+
     def add_to_cache(self, modules_directory, file_in_cache):
         """
         Add a ``node_modules`` directory to the cache.
@@ -260,9 +276,9 @@ class NpmAccel(PropertyManager):
         timer = Timer()
         logger.info("Adding to cache (%s) ..", format_path(file_in_cache))
         self.context.execute('mkdir', '-p', os.path.dirname(file_in_cache))
-        temporary_file = '%s-%i' % (file_in_cache, random.randint(1, 100000))
-        self.context.execute('tar', '-cf', temporary_file, '-C', modules_directory, '.')
-        self.context.execute('mv', temporary_file, file_in_cache)
+        with self.context.atomic_write(file_in_cache) as temporary_file:
+            self.context.execute('tar', '-cf', temporary_file, '-C', modules_directory, '.')
+        self.write_metadata(file_in_cache)
         logger.verbose("Took %s to add directory to cache.", timer)
 
     def install_from_cache(self, file_in_cache, modules_directory):
@@ -281,7 +297,44 @@ class NpmAccel(PropertyManager):
         self.clear_directory(modules_directory)
         logger.verbose("Unpacking archive (%s) ..", file_in_cache)
         self.context.execute('tar', '-xf', file_in_cache, '-C', modules_directory)
+        self.write_metadata(file_in_cache)
         logger.verbose("Took %s to install from cache.", timer)
+
+    def write_metadata(self, file_in_cache, **overrides):
+        """
+        Create or update the metadata file associated with an archive in the cache.
+
+        :param file_in_cache: The pathname of the archive in the cache (a string).
+        :param overrides: Any key/value pairs to add to the metadata.
+        """
+        metadata_file = self.get_metadata_file(file_in_cache)
+        cache_metadata = self.read_metadata(file_in_cache)
+        if cache_metadata:
+            logger.verbose("Updating metadata file (%s) ..", metadata_file)
+        else:
+            logger.verbose("Creating metadata file (%s) ..", metadata_file)
+        cache_metadata.update(overrides)
+        if 'date-created' not in cache_metadata:
+            cache_metadata['date-created'] = int(time.time())
+        cache_metadata['last-accessed'] = int(time.time())
+        cache_metadata['cache-hits'] = cache_metadata.get('cache-hits', 0) + 1
+        with self.context.atomic_write(metadata_file) as temporary_file:
+            self.context.write_file(temporary_file, json.dumps(cache_metadata))
+
+    def read_metadata(self, file_in_cache):
+        """
+        Read the metadata associated with an archive in the cache.
+
+        :param file_in_cache: The pathname of the archive in the cache (a string).
+        :returns: A dictionary with cache metadata. If the cache metadata file
+                  cannot be read or its contents can't be parsed as JSON then
+                  an empty dictionary is returned.
+        """
+        metadata_file = self.get_metadata_file(file_in_cache)
+        if self.context.is_file(metadata_file):
+            return json.loads(self.context.read_file(metadata_file))
+        else:
+            return {}
 
     def clear_directory(self, directory):
         """
@@ -298,7 +351,7 @@ class NpmAccel(PropertyManager):
         """
         if self.context.is_directory(directory):
             logger.verbose("Cleaning up existing directory (%s)..", directory)
-            self.context.execute('rm', '-R', directory)
+            self.context.execute('rm', '-fr', directory)
         logger.verbose("Creating directory (%s)..", directory)
         self.context.execute('mkdir', '-p', directory)
 
@@ -469,6 +522,36 @@ class NpmAccel(PropertyManager):
                 results.append((label, iteration_label, str(timer)))
                 logger.info("Took %s for '%s' (%s).", timer, label, iteration_label)
         print(format_table(results, column_names=["Approach", "Iteration", "Elapsed time"]))
+
+    def clean_cache(self):
+        """Remove old and unused archives from the cache directory."""
+        timer = Timer()
+        entries = []
+        for file_in_cache in self.find_archives():
+            cache_metadata = self.read_metadata(file_in_cache)
+            last_accessed = cache_metadata.get('last-accessed', 0)
+            entries.append((last_accessed, file_in_cache))
+        to_remove = sorted(entries)[:-self.cache_limit]
+        if to_remove:
+            for last_used, file_in_cache in to_remove:
+                logger.debug("Removing archive from cache: %s", file_in_cache)
+                metadata_file = self.get_metadata_file(file_in_cache)
+                self.context.execute('rm', '-f', file_in_cache, metadata_file)
+            logger.verbose("Took %s to remove %s from cache.",
+                           timer, pluralize(len(to_remove), "archive"))
+        else:
+            logger.verbose("Wasted %s checking whether cache needs to be cleaned (it doesn't).", timer)
+
+    def find_archives(self):
+        """
+        Find the absolute pathnames of the archives in the cache directory.
+
+        :returns: A generator of filenames (strings).
+        """
+        pattern = re.compile(r'^[0-9A-F]{40}\.tar$', re.IGNORECASE)
+        for entry in self.context.list_entries(self.cache_directory):
+            if pattern.match(entry):
+                yield os.path.join(self.cache_directory, entry)
 
 
 def auto_decode(text):

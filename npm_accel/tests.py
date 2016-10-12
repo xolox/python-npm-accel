@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: September 17, 2016
+# Last Change: October 12, 2016
 # URL: https://github.com/xolox/python-npm-accel
 
 """Test suite for the `npm-accel` package."""
@@ -175,6 +175,26 @@ class NpmAccelTestCase(unittest.TestCase):
                 # Make sure the 2nd run was significantly faster than the 1st run.
                 assert second_run.elapsed_time < (first_run.elapsed_time / 2)
 
+    def test_cache_cleaning(self):
+        """Make sure the automatic cache cleaning logic works as expected."""
+        with TemporaryDirectory() as cache_directory:
+            context = create_context()
+            accelerator = NpmAccel(context=context, cache_directory=cache_directory)
+            just_above_limit = accelerator.cache_limit + 1
+            for i in range(just_above_limit):
+                # Create a fake (empty) tar archive.
+                fingerprint = random_string(length=40, characters=string.hexdigits)
+                filename = os.path.join(cache_directory, '%s.tar' % fingerprint)
+                context.write_file(filename, '')
+                # Create the cache metadata.
+                accelerator.write_metadata(filename)
+            # Sanity check the cache entries.
+            assert len(list(accelerator.find_archives())) == just_above_limit
+            # Run the cleanup.
+            accelerator.clean_cache()
+            # Make sure the number of cache entries decreased.
+            assert len(list(accelerator.find_archives())) == accelerator.cache_limit
+
     def test_npm_fast_install_workaround(self):
         """Test that ``npm-fast-install`` installs ``devDependencies`` (due to the workaround in npm-accel)."""
         with TemporaryDirectory() as cache_directory:
@@ -264,6 +284,6 @@ def write_package_metadata(directory, dependencies={}, devDependencies={}):
         json.dump(metadata, handle)
 
 
-def random_string(length=25):
+def random_string(length=25, characters=string.ascii_letters):
     """Generate a random string."""
-    return ''.join(random.choice(string.ascii_letters) for i in range(length))
+    return ''.join(random.choice(characters) for i in range(length))

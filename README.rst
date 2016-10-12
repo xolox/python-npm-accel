@@ -135,6 +135,9 @@ It works on the assumption that you build "node_modules" directories more freque
    "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are
    ""npm"" (the default), ""npm-cache"" and ""npm-fast-install""."
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
+   "``-l``, ``--cache-limit=COUNT``","Set the maximum number of tar archives to preserve. When the cache
+   directory contains more than ``COUNT`` archives the least recently used
+   archives are removed. Defaults to 20."
    "``-n``, ``--no-cache``","Disallow writing to the cache managed by npm-accel (reading is still
    allowed though). This option does not disable caching performed by
    npm-cache and npm-fast-install."
@@ -164,15 +167,6 @@ It works on the assumption that you build "node_modules" directories more freque
 
 Future improvements
 -------------------
-
-**Automatic cache invalidation**
- Currently the ``~/.cache/npm-accel`` directory will simply keep growing as new
- installations are added to the cache. Eventually I want npm-accel to
- automatically remove cache entries that are no longer being used. Given that
- "last accessed time" of files is frequently disabled in high performance
- situations like continuous integration environments and build servers I may
- need to enhance the cache directory with metadata per cache entry. I'm still
- thinking about the best way to approach this...
 
 **Accelerate installations with changes**
  Currently when the fingerprint (cache key) of the dependencies doesn't match a

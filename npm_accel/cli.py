@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: September 17, 2016
+# Last Change: October 12, 2016
 # URL: https://github.com/xolox/python-npm-accel
 
 """
@@ -30,6 +30,12 @@ Supported options:
   -c, --cache-directory=DIR
 
     Set the pathname of the directory where the npm-accel cache is stored.
+
+  -l, --cache-limit=COUNT
+
+    Set the maximum number of tar archives to preserve. When the cache
+    directory contains more than COUNT archives the least recently used
+    archives are removed. Defaults to 20.
 
   -n, --no-cache
 
@@ -104,9 +110,10 @@ def main():
     action = 'install'
     # Parse the command line arguments.
     try:
-        options, arguments = getopt.getopt(sys.argv[1:], 'pi:c:nbr:vqh', [
-            'production', 'installer=', 'cache-directory=', 'no-cache',
-            'benchmark', 'remote-host=', 'verbose', 'quiet', 'help',
+        options, arguments = getopt.getopt(sys.argv[1:], 'pi:c:l:nbr:vqh', [
+            'production', 'installer=', 'cache-directory=', 'cache-limit=',
+            'no-cache', 'benchmark', 'remote-host=', 'verbose', 'quiet',
+            'help',
         ])
         for option, value in options:
             if option in ('p', '--production'):
@@ -115,6 +122,8 @@ def main():
                 program_opts['installer_name'] = value
             elif option in ('-c', '--cache-directory'):
                 program_opts['cache_directory'] = parse_path(value)
+            elif option in ('-l', '--cache-limit'):
+                program_opts['cache_limit'] = int(value)
             elif option in ('-n', '--no-cache'):
                 program_opts['write_to_cache'] = False
             elif option in ('-b', '--benchmark'):
