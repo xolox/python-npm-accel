@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 12, 2016
+# Last Change: June 24, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """Test suite for the `npm-accel` package."""
@@ -10,18 +10,14 @@
 import json
 import logging
 import os
-import random
-import shutil
 import string
-import sys
-import tempfile
-import unittest
 
 # External dependencies.
-import coloredlogs
 from executor import execute
 from executor.contexts import create_context
 from humanfriendly import Timer
+from humanfriendly.text import random_string
+from humanfriendly.testing import TemporaryDirectory, TestCase, run_cli
 
 # Modules included in our package.
 from npm_accel import NpmAccel
@@ -32,13 +28,9 @@ from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreter
 logger = logging.getLogger(__name__)
 
 
-class NpmAccelTestCase(unittest.TestCase):
+class NpmAccelTestCase(TestCase):
 
     """Container for the `npm-accel` test suite."""
-
-    def setUp(self):
-        """Enable debug logging to the terminal."""
-        coloredlogs.install(level=logging.DEBUG)
 
     def test_missing_package_file_error(self):
         """Make sure an error is raised when the ``package.json`` file is missing."""
@@ -64,7 +56,8 @@ class NpmAccelTestCase(unittest.TestCase):
 
     def test_multiple_arguments_error(self):
         """Make sure that multiple positional arguments raise an error."""
-        assert run_cli('a', 'b') != 0
+        returncode, output = run_cli(main, 'a', 'b')
+        assert returncode != 0
 
     def test_implicit_local_directory(self):
         """Make sure local installation implicitly uses the working directory."""
@@ -73,13 +66,15 @@ class NpmAccelTestCase(unittest.TestCase):
             write_package_metadata(project_directory)
             os.chdir(project_directory)
             try:
-                assert run_cli() == 0
+                returncode, output = run_cli(main)
+                assert returncode == 0
             finally:
                 os.chdir(saved_cwd)
 
     def test_explicit_remote_directory(self):
         """Make sure remote installation requires an explicit working directory."""
-        assert run_cli('--remote-host=localhost') != 0
+        returncode, output = run_cli(main, '--remote-host=localhost')
+        assert returncode != 0
 
     def test_installer_validation(self):
         """Make sure the installer name is properly validated."""
@@ -103,7 +98,7 @@ class NpmAccelTestCase(unittest.TestCase):
             with TemporaryDirectory() as cache_directory:
                 with TemporaryDirectory() as project_directory:
                     write_package_metadata(project_directory, dict(npm='3.10.6'))
-                    run_cli('--installer=%s' % installer_name,
+                    run_cli(main, '--installer=%s' % installer_name,
                             '--cache-directory=%s' % cache_directory,
                             project_directory)
                     self.check_program(project_directory, 'npm', 'help')
@@ -119,13 +114,13 @@ class NpmAccelTestCase(unittest.TestCase):
             with TemporaryDirectory() as project_directory:
                 write_package_metadata(project_directory, dict(path='0.12.7'), dict(npm='3.10.6'))
                 # Install the production dependencies (a subset of the development dependencies).
-                run_cli('--cache-directory=%s' % cache_directory, '--production', project_directory)
+                run_cli(main, '--cache-directory=%s' % cache_directory, '--production', project_directory)
                 # We *do* expect the `path' production dependency to have been installed.
                 assert os.path.exists(os.path.join(project_directory, 'node_modules', 'path'))
                 # We *don't* expect the `npm' development dependency to have been installed.
                 assert not os.path.exists(os.path.join(project_directory, 'node_modules', 'npm'))
                 # Install the development dependencies (a superset of the production dependencies).
-                run_cli('--cache-directory=%s' % cache_directory, project_directory)
+                run_cli(main, '--cache-directory=%s' % cache_directory, project_directory)
                 # We *do* expect the `path' production dependency to have been installed.
                 assert os.path.exists(os.path.join(project_directory, 'node_modules', 'path'))
                 # We *also* expect the `npm' development dependency to have been installed.
@@ -212,7 +207,7 @@ class NpmAccelTestCase(unittest.TestCase):
         with TemporaryDirectory() as cache_directory:
             with TemporaryDirectory() as project_directory:
                 write_package_metadata(project_directory, dict(npm='3.10.6'))
-                run_cli('--cache-directory=%s' % cache_directory,
+                run_cli(main, '--cache-directory=%s' % cache_directory,
                         '--benchmark', project_directory)
 
     def check_program(self, directory, program_name, *arguments):
@@ -225,55 +220,6 @@ class NpmAccelTestCase(unittest.TestCase):
         execute(program_path, *arguments)
 
 
-class TemporaryDirectory(object):
-
-    """
-    Easy temporary directory creation & cleanup using the :keyword:`with` statement.
-
-    Here's an example of how to use this:
-
-    .. code-block:: python
-
-       with TemporaryDirectory() as directory:
-           # Do something useful here.
-           assert os.path.isdir(directory)
-    """
-
-    def __init__(self, **options):
-        """
-        Initialize a :class:`TemporaryDirectory` object.
-
-        :param options: Any keyword arguments are passed on to :func:`tempfile.mkdtemp()`.
-        """
-        self.options = options
-        self.temporary_directory = None
-
-    def __enter__(self):
-        """Create the temporary directory."""
-        self.temporary_directory = tempfile.mkdtemp(**self.options)
-        return self.temporary_directory
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Destroy the temporary directory."""
-        if self.temporary_directory is not None:
-            shutil.rmtree(self.temporary_directory)
-            self.temporary_directory = None
-
-
-def run_cli(*arguments):
-    """Run the command line interface (in the same process)."""
-    saved_argv = sys.argv
-    try:
-        sys.argv = ['npm-accel'] + list(arguments)
-        main()
-    except SystemExit as e:
-        return e.code
-    else:
-        return 0
-    finally:
-        sys.argv = saved_argv
-
-
 def write_package_metadata(directory, dependencies={}, devDependencies={}):
     """Generate a ``package.json`` file for testing."""
     metadata = dict(name=random_string(10),
@@ -282,8 +228,3 @@ def write_package_metadata(directory, dependencies={}, devDependencies={}):
                     devDependencies=devDependencies)
     with open(os.path.join(directory, 'package.json'), 'w') as handle:
         json.dump(metadata, handle)
-
-
-def random_string(length=25, characters=string.ascii_letters):
-    """Generate a random string."""
-    return ''.join(random.choice(characters) for i in range(length))
