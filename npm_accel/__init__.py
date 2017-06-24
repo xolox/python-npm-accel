@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 12, 2016
+# Last Change: June 24, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """Accelerator for npm, the Node.js package manager."""
@@ -17,8 +17,9 @@ import time
 
 # External dependencies.
 from chardet import detect
-from executor import quote
+from executor import ExternalCommandFailed, quote
 from humanfriendly import Timer, format_path, format_table, parse_path
+from humanfriendly.terminal import ansi_wrap, terminal_supports_colors
 from humanfriendly.text import pluralize
 from property_manager import PropertyManager, cached_property, mutable_property, required_property
 from verboselogs import VerboseLogger
@@ -506,7 +507,7 @@ class NpmAccel(PropertyManager):
             # Run the test twice, the first time to prime the cache
             # and the second time to actually use the cache.
             for i in range(1, iterations + 1):
-                iteration_label = "iteration %i/%i" % (i, iterations)
+                iteration_label = "%i of %i" % (i, iterations)
                 logger.info("Testing '%s' (%s) ..", label, iteration_label)
                 self.clear_directory(os.path.join(directory, 'node_modules'))
                 timer = Timer()
@@ -518,8 +519,17 @@ class NpmAccel(PropertyManager):
                     self.installer_name = name
                     self.read_from_cache = False
                     self.write_to_cache = False
-                self.install(directory, silent=silent)
-                results.append((label, iteration_label, str(timer)))
+                try:
+                    self.install(directory, silent=silent)
+                except ExternalCommandFailed:
+                    status = "Failed! (after %s)" % timer
+                    if terminal_supports_colors():
+                        status = ansi_wrap(status, color='red')
+                    results.append((label, iteration_label, status))
+                    # We skip the second iteration on failure.
+                    break
+                else:
+                    results.append((label, iteration_label, str(timer)))
                 logger.info("Took %s for '%s' (%s).", timer, label, iteration_label)
         print(format_table(results, column_names=["Approach", "Iteration", "Elapsed time"]))
 
