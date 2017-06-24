@@ -135,7 +135,7 @@ class NpmAccel(PropertyManager):
         logger.debug("Discovering name of Node.js interpreter ..")
         for interpreter in 'nodejs', 'node':
             logger.debug("Checking availability of program: %s", interpreter)
-            if self.context.test('which', interpreter):
+            if self.context.find_program(interpreter):
                 logger.debug("Found name of Node.js interpreter: %s", interpreter)
                 return interpreter
         raise MissingNodeInterpreterError("Missing Node.js interpreter! (expected to find 'nodejs' or 'node')")
@@ -413,12 +413,7 @@ class NpmAccel(PropertyManager):
         .. _npm-cache issue 74: https://github.com/swarajban/npm-cache/issues/74
         """
         timer = Timer()
-        program_name = 'npm-cache'
-        if not self.context.test('which', program_name):
-            program_name = os.path.join(directory, 'node_modules', '.bin', 'npm-cache')
-            if not self.context.exists(program_name):
-                logger.verbose("Installing npm-cache locally (because it's not globally installed) ..")
-                self.context.execute('npm', 'install', 'npm-cache', directory=directory, silent=silent)
+        program_name = self.prepare_installer(directory, 'npm-cache', silent=silent)
         install_command = [program_name, 'install', 'npm', self.production_option]
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
@@ -452,12 +447,7 @@ class NpmAccel(PropertyManager):
         .. _npm-fast-install pull request 3: https://github.com/appcelerator/npm-fast-install/pull/3
         """
         timer = Timer()
-        program_name = 'npm-fast-install'
-        if not self.context.test('which', 'npm-fast-install'):
-            program_name = os.path.join(directory, 'node_modules', '.bin', 'npm-fast-install')
-            if not self.context.exists(program_name):
-                logger.verbose("Installing npm-fast-install locally (because it's not globally installed) ..")
-                self.context.execute('npm', 'install', 'npm-fast-install', directory=directory, silent=silent)
+        program_name = self.prepare_installer(directory, 'npm-fast-install', silent=silent)
         package_file = os.path.join(directory, 'package.json')
         original_contents = self.context.read_file(package_file)
         metadata = dict(dependencies={}, devDependencies={})
@@ -480,6 +470,26 @@ class NpmAccel(PropertyManager):
                 logger.debug("Restoring original contents of %s ..", package_file)
                 self.context.write_file(package_file, original_contents)
         logger.verbose("Took %s to install with npm-fast-install.", timer)
+
+    def prepare_installer(self, directory, name, silent=False):
+        """
+        Prepare a non-default installer.
+
+        :param directory: The pathname of the directory where the non-default
+                          installer should be installed if not already
+                          available globally (a string).
+        :param name: The name of the Node.js package and program (a string).
+        :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
+        :returns: The modified program name (a string).
+        """
+        logger.debug("Checking if installer is available globally: %s", name)
+        if not self.context.find_program(name):
+            logger.debug("Checking if installer is available locally: %s", name)
+            name = os.path.join(directory, 'node_modules', '.bin', name)
+            if not self.context.exists(name):
+                logger.verbose("Installing %s locally (because it's not globally installed) ..", name)
+                self.context.execute('npm', 'install', name, directory=directory, silent=silent)
+        return name
 
     def benchmark(self, directory, iterations=2, reset_caches=True, silent=False):
         """
