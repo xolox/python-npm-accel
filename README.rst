@@ -120,9 +120,14 @@ interface is described below.
 
 **Usage:** `npm-accel [OPTIONS] [DIRECTORY]`
 
-The npm-accel program is a wrapper for npm (the Node.js package manager) that optimizes one specific use case: Building a "node_modules" directory from a "package.json" file as quickly as possible.
+The npm-accel program is a wrapper for npm (the Node.js package manager) that
+optimizes one specific use case: Building a "node_modules" directory from a
+"package.json" file as quickly as possible.
 
-It works on the assumption that you build "node_modules" directories more frequently then you change the contents of "package.json" files, because it computes a fingerprint of the dependencies and uses that fingerprint as a cache key, to cache the complete "node_modules" directory in a tar archive.
+It works on the assumption that you build "node_modules" directories more
+frequently then you change the contents of "package.json" files, because it
+computes a fingerprint of the dependencies and uses that fingerprint as a
+cache key, to cache the complete "node_modules" directory in a tar archive.
 
 **Supported options:**
 
@@ -158,10 +163,9 @@ It works on the assumption that you build "node_modules" directories more freque
    override this in the Python API but not on the command line)."
    "``-r``, ``--remote-host=SSH_ALIAS``","Operate on a remote system instead of the local system. The
    ``SSH_ALIAS`` argument gives the SSH alias of the remote host."
-   "``-v``, ``--verbose``",Make more noise.
-   "``-q``, ``--quiet``",Make less noise.
-   "``-h``, ``--help``","Show this message and exit.
-   "
+   "``-v``, ``--verbose``",Increase logging verbosity (can be repeated).
+   "``-q``, ``--quiet``",Decrease logging verbosity (can be repeated).
+   "``-h``, ``--help``",Show this message and exit.
 
 .. [[[end]]]
 

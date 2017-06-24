@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: October 12, 2016
+# Last Change: June 24, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """
@@ -68,11 +68,11 @@ Supported options:
 
   -v, --verbose
 
-    Make more noise.
+    Increase logging verbosity (can be repeated).
 
   -q, --quiet
 
-    Make less noise.
+    Decrease logging verbosity (can be repeated).
 
   -h, --help
 
