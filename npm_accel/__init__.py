@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 27, 2017
+# Last Change: June 28, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """Accelerator for npm, the Node.js package manager."""
@@ -489,7 +489,7 @@ class NpmAccel(PropertyManager):
         logger.debug("Checking if installer is available locally: %s", absolute_path)
         if not self.context.exists(absolute_path):
             logger.verbose("Installing %s locally (because it's not globally installed) ..", name)
-            self.context.execute('npm', 'install', name, directory=directory, silent=silent)
+            self.context.execute('npm', 'install', '--no-save', name, directory=directory, silent=silent)
         return absolute_path
 
     def benchmark(self, directory, iterations=2, reset_caches=True, silent=False):
