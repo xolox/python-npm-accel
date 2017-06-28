@@ -19,14 +19,17 @@ import time
 # External dependencies.
 from chardet import detect
 from executor import ExternalCommandFailed, quote
-from humanfriendly import Timer, format_path, format_table, parse_path
+from humanfriendly import Timer, concatenate, format_path, format_table, parse_path
 from humanfriendly.terminal import ansi_wrap, terminal_supports_colors
 from humanfriendly.text import pluralize
-from property_manager import PropertyManager, cached_property, mutable_property, required_property
+from property_manager import PropertyManager, cached_property, mutable_property, required_property, set_property
 from verboselogs import VerboseLogger
 
 # Modules included in our package.
 from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreterError
+
+KNOWN_INSTALLERS = ('npm', 'yarn', 'npm-cache', 'npm-fast-install')
+"""A tuple of strings with the names of supported Node.js installers."""
 
 # Semi-standard module versioning.
 __version__ = '0.4'
@@ -90,10 +93,29 @@ class NpmAccel(PropertyManager):
         """
         The name of the installer to use (one of the strings 'npm', 'yarn', 'npm-cache' or 'npm-fast-install').
 
-        The value of :attr:`installer_name` defaults to
-        the value of :attr:`default_installer`.
+        The default value of :attr:`installer_name` is
+        :attr:`default_installer`. When you try to set :attr:`installer_name`
+        to a name that is not part of :data:`KNOWN_INSTALLERS` a
+        :exc:`~exceptions.ValueError` exception will be raised. When you try to
+        set :attr:`installer_name` to the name of an installer that is not
+        available a warning message will be logged and
+        :attr:`default_installer` is used instead.
         """
         return self.default_installer
+
+    @installer_name.setter
+    def installer_name(self, value):
+        """Validate the configured installer."""
+        if value not in KNOWN_INSTALLERS:
+            msg = "Invalid installer name %r! (the supported installers are %s)"
+            raise ValueError(msg % (value, concatenate(KNOWN_INSTALLERS)))
+        if self.context.find_program(value):
+            logger.verbose("Selecting user defined installer %r (confirmed to be installed).", value)
+        else:
+            logger.warning("User defined installer %r isn't available, falling back to %s.",
+                           value, self.default_installer)
+            value = self.default_installer
+        set_property(self, 'installer_name', value)
 
     @property
     def installer_method(self):
