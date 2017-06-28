@@ -28,6 +28,17 @@ Supported options:
     `npm-cache' and `npm-fast-install'. When yarn is available it will be
     selected as the default installer, otherwise the default is npm.
 
+  -u, --update
+
+    Don't read from the cache but do write to the cache. If you suspect a cache
+    entry to be corrupt you can use --update to 'refresh' the cache entry.
+
+  -n, --no-cache
+
+    Disallow writing to the cache managed by npm-accel (reading is still
+    allowed though). This option does not disable internal caching
+    performed by npm, yarn, npm-cache and npm-fast-install.
+
   -c, --cache-directory=DIR
 
     Set the pathname of the directory where the npm-accel cache is stored.
@@ -37,12 +48,6 @@ Supported options:
     Set the maximum number of tar archives to preserve. When the cache
     directory contains more than COUNT archives the least recently used
     archives are removed. Defaults to 20.
-
-  -n, --no-cache
-
-    Disallow writing to the cache managed by npm-accel (reading is still
-    allowed though). This option does not disable internal caching
-    performed by npm, yarn, npm-cache and npm-fast-install.
 
   -b, --benchmark
 
@@ -112,22 +117,25 @@ def main():
     action = 'install'
     # Parse the command line arguments.
     try:
-        options, arguments = getopt.getopt(sys.argv[1:], 'pi:c:l:nbr:vqh', [
-            'production', 'installer=', 'cache-directory=', 'cache-limit=',
-            'no-cache', 'benchmark', 'remote-host=', 'verbose', 'quiet',
-            'help',
+        options, arguments = getopt.getopt(sys.argv[1:], 'pi:unc:l:br:vqh', [
+            'production', 'installer=', 'update', 'no-cache',
+            'cache-directory=', 'cache-limit=', 'benchmark', 'remote-host=',
+            'verbose', 'quiet', 'help',
         ])
         for option, value in options:
             if option in ('-p', '--production'):
                 program_opts['production'] = True
             elif option in ('-i', '--installer'):
                 program_opts['installer_name'] = value
+            elif option in ('-u', '--update'):
+                program_opts['read_from_cache'] = False
+                program_opts['write_to_cache'] = True
+            elif option in ('-n', '--no-cache'):
+                program_opts['write_to_cache'] = False
             elif option in ('-c', '--cache-directory'):
                 program_opts['cache_directory'] = parse_path(value)
             elif option in ('-l', '--cache-limit'):
                 program_opts['cache_limit'] = int(value)
-            elif option in ('-n', '--no-cache'):
-                program_opts['write_to_cache'] = False
             elif option in ('-b', '--benchmark'):
                 action = 'benchmark'
             elif option in ('-r', '--remote-host'):
