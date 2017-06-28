@@ -110,8 +110,7 @@ class NpmAccelTestCase(TestCase):
         accelerator.installer_name = 'npm-fast-install'
         assert accelerator.installer_method == accelerator.install_with_npm_fast_install
         # Make sure invalid installer names raise an error.
-        accelerator.installer_name = 'bogus'
-        self.assertRaises(ValueError, lambda: accelerator.installer_method)
+        self.assertRaises(ValueError, setattr, accelerator, 'installer_name', 'bogus')
 
     def test_installers(self):
         """Make sure all of the supported installers actually work!"""
