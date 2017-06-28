@@ -270,7 +270,7 @@ class NpmAccel(PropertyManager):
                 logger.info("Testing '%s' (%s) ..", label, iteration_label)
                 timer = Timer()
                 if name == 'npm-accel':
-                    self.installer_name = 'npm'
+                    self.installer_name = self.default_installer
                     self.read_from_cache = True
                     self.write_to_cache = True
                 else:
