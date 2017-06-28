@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 24, 2017
+# Last Change: June 28, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """Test suite for the `npm-accel` package."""
@@ -79,9 +79,18 @@ class NpmAccelTestCase(TestCase):
     def test_installer_validation(self):
         """Make sure the installer name is properly validated."""
         accelerator = NpmAccel(context=create_context())
-        # Make sure the default installer is 'npm'.
-        assert accelerator.installer_name == 'npm'
+        # Make sure the default installer is 'npm' or 'yarn'.
+        assert accelerator.installer_name in ('yarn', 'npm')
+        assert accelerator.installer_method in (
+            accelerator.install_with_npm,
+            accelerator.install_with_yarn,
+        )
+        # Make sure 'npm' is supported.
+        accelerator.installer_name = 'npm'
         assert accelerator.installer_method == accelerator.install_with_npm
+        # Make sure 'yarn' is supported.
+        accelerator.installer_name = 'yarn'
+        assert accelerator.installer_method == accelerator.install_with_yarn
         # Make sure 'npm-cache' is supported.
         accelerator.installer_name = 'npm-cache'
         assert accelerator.installer_method == accelerator.install_with_npm_cache
@@ -94,7 +103,7 @@ class NpmAccelTestCase(TestCase):
 
     def test_installers(self):
         """Make sure all of the supported installers actually work!"""
-        for installer_name in 'npm', 'npm-cache', 'npm-fast-install':
+        for installer_name in 'npm', 'yarn', 'npm-cache', 'npm-fast-install':
             with TemporaryDirectory() as cache_directory:
                 with TemporaryDirectory() as project_directory:
                     write_package_metadata(project_directory, dict(npm='3.10.6'))
