@@ -32,7 +32,7 @@ KNOWN_INSTALLERS = ('npm', 'yarn', 'npm-cache', 'npm-fast-install')
 """A tuple of strings with the names of supported Node.js installers."""
 
 # Semi-standard module versioning.
-__version__ = '0.4'
+__version__ = '1.0'
 
 # Initialize a logger for this program.
 logger = VerboseLogger(__name__)

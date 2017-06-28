@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 28, 2017
+# Last Change: June 29, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """Setup script for the `npm-accel` package."""
@@ -61,7 +61,7 @@ setup(
     ]),
     test_suite='npm_accel.tests',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
