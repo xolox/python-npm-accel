@@ -38,46 +38,55 @@ got fed up waiting for ``npm install`` to finish, specifically in the context
 of continuous integration builds and deployments (where you frequently start
 with an empty ``node_modules`` directory). It was developed in about a week
 without much prior knowledge about Node.js_ or npm_, which explains why it's
-written in Python :-P. On the one hand npm-accel hasn't seen much actual use,
-on the other hand it has a test suite with about 95% test coverage and I was
-careful not to repeat the bugs I encountered in npm-cache_ and
-npm-fast-install_ while evaluating those tools :-).
+written in Python :-P.
+
+The project was initially published with 95% test coverage and I was careful
+not to repeat the bugs I encountered in npm-cache_ and npm-fast-install_ while
+evaluating those tools :-).
+
+At the time of writing (June '17) npm-accel has been in active use at my
+employer for about nine months. During that time our builds have become bigger
+and slower and so I wanted npm-accel to be even faster :-). To this end I've
+removed the use of ``npm prune`` and integrated support for yarn_ (it will be
+used automatically in preference over npm_ when it is installed).
 
 To summarize: Give it a try, see if it actually speeds up your ``npm install``
-use case and then decide whether you want to use it or not. The first releases
-of npm-accel are labeled as `alpha releases`_ because the program hasn't seen
-much real world use (and I'm no expert in Node.js and npm).
+use case and then decide whether you want to use it or not. The current release
+of npm-accel is labeled as a `beta release`_ because of the recent refactoring
+that removed ``npm prune``, integrated yarn and cleaned up the code base.
 
 Performance
 -----------
 
-The following table lists the output of ``npm-accel --benchmark`` (with some
-enhancements) against a private code base with about 30 dependencies listed in
-the package.json file (resulting in a 401 MB node_modules directory):
+The following table lists the output of ``npm-accel --benchmark`` against a
+private code base with 58 dependencies listed in the package.json file
+(resulting in a 357 MB node_modules directory):
 
-=====================  =========  =======================  ==========
-Approach               Iteration  Elapsed time             Percentage
-=====================  =========  =======================  ==========
-npm install                  1/2  1 minute and 36 seconds      100.0%
-npm install                  2/2  1 minute and 40 seconds      104.1%
-npm-accel                    1/2  1 minute and 40 seconds      104.1%
-npm-accel                    2/2             7.26 seconds        7.5%
-npm-cache install npm        1/2  3 minutes and 9 seconds      196.8%
-npm-cache install npm        2/2  2 minutes and 9 seconds      134.3%
-npm-fast-install             1/2  1 minute and 5 seconds        72.2%
-npm-fast-install             2/2  1 minute and 6 seconds        73.3%
-=====================  =========  =======================  ==========
+=========================  =========  ===========================  ==========
+Approach                   Iteration  Elapsed time                 Percentage
+=========================  =========  ===========================  ==========
+npm install                   1 of 2                42.47 seconds     100.00%
+npm install                   2 of 2                27.92 seconds      65.73%
+yarn                          1 of 2                33.32 seconds      78.45%
+yarn                          2 of 2                17.66 seconds      41.59%
+npm-accel                     1 of 2                28.22 seconds      66.45%
+npm-accel                     2 of 2                  1.79 second       4.22%
+npm-cache install npm         1 of 2    1 minute and 2.88 seconds     148.06%
+npm-cache install npm         2 of 2                15.87 seconds      37.35%
+npm-fast-install              1 of 2  9 minutes and 35.35 seconds    1354.62%
+npm-fast-install (failed)     2 of 2                           \-          \-
+=========================  =========  ===========================  ==========
 
 Some notes about this benchmark:
 
-- Each of the four installation methods is run twice. The first run starts with
-  empty cache directories and is intended to "prime the cache". The second run
-  is intended to actually use the cache and should be able to do so quite
-  effectively, given that the package.json file does not change between the two
-  runs.
+- Each of the five installation methods (npm, yarn, npm-accel, npm-cache and
+  npm-fast-install) is run twice. The first run starts with empty cache
+  directories and is intended to "prime the cache". The second run is intended
+  to actually use the cache and should be able to do so quite effectively,
+  given that the package.json file does not change between the two runs.
 
 - During the benchmark, the caching performed by npm-accel is only used in the
-  fourth row of the table above. This is because the original point of the
+  sixth row of the table above. This is because the original point of the
   benchmark (for me) was to find out whether it was even worth it to develop
   and publish npm-accel. That is to say, if it wouldn't have given a speed
   improvement it wasn't worth my time, nor yours :-P.
@@ -140,13 +149,15 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
    "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm"", ""yarn"",
    ""npm-cache"" and ""npm-fast-install"". When yarn is available it will be
    selected as the default installer, otherwise the default is npm."
+   "``-u``, ``--update``","Don't read from the cache but do write to the cache. If you suspect a cache
+   entry to be corrupt you can use ``--update`` to 'refresh' the cache entry."
+   "``-n``, ``--no-cache``","Disallow writing to the cache managed by npm-accel (reading is still
+   allowed though). This option does not disable internal caching
+   performed by npm, yarn, npm-cache and npm-fast-install."
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
    "``-l``, ``--cache-limit=COUNT``","Set the maximum number of tar archives to preserve. When the cache
    directory contains more than ``COUNT`` archives the least recently used
    archives are removed. Defaults to 20."
-   "``-n``, ``--no-cache``","Disallow writing to the cache managed by npm-accel (reading is still
-   allowed though). This option does not disable internal caching
-   performed by npm, yarn, npm-cache and npm-fast-install."
    "``-b``, ``--benchmark``","Benchmark and compare the following installation methods:
    
    1. npm install
@@ -167,6 +178,7 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
    ``SSH_ALIAS`` argument gives the SSH alias of the remote host."
    "``-v``, ``--verbose``",Increase logging verbosity (can be repeated).
    "``-q``, ``--quiet``",Decrease logging verbosity (can be repeated).
+   ``--version``,Report the version of npm-accel.
    "``-h``, ``--help``",Show this message and exit.
 
 .. [[[end]]]
@@ -215,8 +227,8 @@ This software is licensed under the `MIT license`_.
 
 
 .. External references:
-.. _alpha releases: https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha
 .. _available in AUR: https://aur.archlinux.org/packages/npm-accel/
+.. _beta release: https://en.wikipedia.org/wiki/Software_release_life_cycle#Beta
 .. _GitHub: https://github.com/xolox/python-npm-accel
 .. _MIT license: http://en.wikipedia.org/wiki/MIT_License
 .. _Node.js: https://nodejs.org/en/
@@ -232,3 +244,4 @@ This software is licensed under the `MIT license`_.
 .. _tar: https://en.wikipedia.org/wiki/Tar_(computing)
 .. _tarfile module: https://docs.python.org/2/library/tarfile.html
 .. _virtual environments: http://docs.python-guide.org/en/latest/dev/virtualenvs/
+.. _yarn: https://www.npmjs.com/package/yarn
