@@ -24,6 +24,12 @@ if [ "$TRAVIS_OS_NAME" = linux ]; then
   debuntu-nodejs-installer --install
 fi
 
+# Upgrade and/or install the tools that we'll be using and benchmarking.
+sudo npm install -g npm
+sudo npm install -g yarn
+sudo npm install -g npm-cache
+sudo npm install -g npm-fast-install
+
 # Install the project itself, making sure that potential character encoding
 # and/or decoding errors in the setup script are caught as soon as possible.
 LC_ALL=C pip-accel install .
