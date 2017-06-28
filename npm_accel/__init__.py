@@ -302,7 +302,7 @@ class NpmAccel(PropertyManager):
         to_remove = sorted(entries)[:-self.cache_limit]
         if to_remove:
             for last_used, file_in_cache in to_remove:
-                logger.debug("Removing archive from cache: %s", file_in_cache)
+                logger.debug("Removing archive from cache: %s", format_path(file_in_cache))
                 metadata_file = self.get_metadata_file(file_in_cache)
                 self.context.execute('rm', '-f', file_in_cache, metadata_file)
             logger.verbose("Took %s to remove %s from cache.",
@@ -326,10 +326,10 @@ class NpmAccel(PropertyManager):
         parsed_directory = parse_path(directory)
         formatted_directory = format_path(parsed_directory)
         if self.context.is_directory(parsed_directory):
-            logger.verbose("Clearing directory contents (%s)..", formatted_directory)
+            logger.verbose("Clearing directory contents (%s) ..", formatted_directory)
             self.context.execute('rm', '-fr', parsed_directory)
         else:
-            logger.verbose("Creating directory (%s)..", formatted_directory)
+            logger.verbose("Creating directory (%s) ..", formatted_directory)
         self.context.execute('mkdir', '-p', parsed_directory)
 
     def extract_dependencies(self, package_file):
@@ -344,7 +344,8 @@ class NpmAccel(PropertyManager):
         If no dependencies are extracted from the ``package.json`` file
         a warning message is logged but it's not considered an error.
         """
-        logger.verbose("Extracting dependencies (%s) ..", package_file)
+        formatted_path = format_path(package_file)
+        logger.verbose("Extracting dependencies (%s) ..", formatted_path)
         if not self.context.is_file(package_file):
             msg = "Missing package.json file! (%s)" % package_file
             raise MissingPackageFileError(msg)
@@ -357,7 +358,7 @@ class NpmAccel(PropertyManager):
             logger.verbose("Extracted %s from package.json file.",
                            pluralize(len(dependencies), "dependency", "dependencies"))
         else:
-            logger.warning("No dependencies extracted from %s file?!", package_file)
+            logger.warning("No dependencies extracted from %s file?!", formatted_path)
         return dependencies
 
     def find_archives(self):
@@ -429,7 +430,7 @@ class NpmAccel(PropertyManager):
         if dependencies:
             file_in_cache = self.get_cache_file(dependencies)
             if self.read_from_cache:
-                logger.verbose("Checking the cache (%s) ..", file_in_cache)
+                logger.verbose("Checking the cache (%s) ..", format_path(file_in_cache))
             if self.read_from_cache and self.context.is_file(file_in_cache):
                 self.install_from_cache(file_in_cache, modules_directory)
                 logger.info("Done! Took %s to install %s from cache.",
@@ -460,9 +461,10 @@ class NpmAccel(PropertyManager):
         order to remove any existing contents before the archive is unpacked.
         """
         timer = Timer()
-        logger.info("Installing from cache (%s)..", format_path(file_in_cache))
+        formatted_path = format_path(file_in_cache)
+        logger.info("Installing from cache (%s)..", formatted_path)
         self.clear_directory(modules_directory)
-        logger.verbose("Unpacking archive (%s) ..", file_in_cache)
+        logger.verbose("Unpacking archive (%s) ..", formatted_path)
         self.context.execute('tar', '-xf', file_in_cache, '-C', modules_directory)
         self.write_metadata(file_in_cache)
         logger.verbose("Took %s to install from cache.", timer)
@@ -558,7 +560,7 @@ class NpmAccel(PropertyManager):
         need_patch = metadata['devDependencies'] and not self.production
         # Temporarily change the contents of the package.json file?
         if need_patch:
-            logger.verbose("Temporarily patching %s ..", package_file)
+            logger.verbose("Temporarily patching %s ..", format_path(package_file))
             patched_data = copy.deepcopy(metadata)
             patched_data['dependencies'].update(patched_data['devDependencies'])
             patched_data.pop('devDependencies')
@@ -604,10 +606,9 @@ class NpmAccel(PropertyManager):
         """
         metadata_file = self.get_metadata_file(file_in_cache)
         cache_metadata = self.read_metadata(file_in_cache)
-        if cache_metadata:
-            logger.verbose("Updating metadata file (%s) ..", metadata_file)
-        else:
-            logger.verbose("Creating metadata file (%s) ..", metadata_file)
+        logger.verbose("%s metadata file (%s) ..",
+                       "Updating" if cache_metadata else "Creating",
+                       format_path(metadata_file))
         cache_metadata.update(overrides)
         if 'date-created' not in cache_metadata:
             cache_metadata['date-created'] = int(time.time())
