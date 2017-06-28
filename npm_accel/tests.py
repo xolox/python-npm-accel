@@ -40,19 +40,9 @@ class NpmAccelTestCase(TestCase):
 
     def test_node_binary_not_found_error(self):
         """Make sure an error is raised when the Node.js interpreter is missing."""
-        saved_path = os.environ.get('PATH', None)
-        try:
-            # Temporarily override the search path to remove all /usr/*
-            # directories where a Node.js interpreter can reasonably be
-            # expected to be installed.
-            os.environ['PATH'] = '/sbin:/bin'
+        with CustomSearchPath(isolated=True):
             accelerator = NpmAccel(context=create_context())
             self.assertRaises(MissingNodeInterpreterError, getattr, accelerator, 'nodejs_interpreter')
-        finally:
-            if saved_path is not None:
-                os.environ['PATH'] = saved_path
-            else:
-                os.environ.pop('PATH')
 
     def test_multiple_arguments_error(self):
         """Make sure that multiple positional arguments raise an error."""
