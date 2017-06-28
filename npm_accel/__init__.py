@@ -104,6 +104,26 @@ class NpmAccel(PropertyManager):
         return 20
 
     @mutable_property
+    def prune_needed(self):
+        """
+        :data:`True` to use ``npm prune`` after installation, :data:`False` otherwise.
+
+        If possible the use of ``npm prune`` is avoided by npm-accel, instead
+        it prefers wiping and rebuilding the ``node_modules`` tree from
+        scratch. This is because of the following observation made while
+        prototyping yarn integration in npm-accel based on a randomly picked
+        package.json file with about 30 dependencies:
+
+        - In the combination ``npm install && npm prune`` the prune command
+          finishes in about ten seconds.
+
+        - With the combination ``yarn && npm prune`` the prune command takes
+          more than a minute, completely negating the speed improvement that
+          yarn provided over ``npm install``.
+        """
+        return False
+
+    @mutable_property
     def read_from_cache(self):
         """:data:`True` if npm-accel is allowed to read from its cache, :data:`False` otherwise."""
         return self.installer_name not in ('npm-cache', 'npm-fast-install')
@@ -177,9 +197,11 @@ class NpmAccel(PropertyManager):
                 logger.info("Done! Took %s to install %s from cache.",
                             timer, pluralize(len(dependencies), "dependency", "dependencies"))
             else:
+                self.clear_directory(modules_directory)
                 with self.preserve_contents(package_file):
                     self.installer_method(directory, silent=silent)
-                    self.prune_dependencies(directory)
+                    if self.prune_needed:
+                        self.prune_dependencies(directory)
                 if self.write_to_cache:
                     self.add_to_cache(modules_directory, file_in_cache)
                 logger.info("Done! Took %s to install %s using npm.",
@@ -492,6 +514,7 @@ class NpmAccel(PropertyManager):
         if not self.context.exists(absolute_path):
             logger.verbose("Installing %s locally (because it's not globally installed) ..", name)
             self.context.execute('npm', 'install', '--no-save', name, directory=directory, silent=silent)
+            self.prune_needed = True
         return absolute_path
 
     @contextlib.contextmanager
@@ -534,7 +557,6 @@ class NpmAccel(PropertyManager):
             for i in range(1, iterations + 1):
                 iteration_label = "%i of %i" % (i, iterations)
                 logger.info("Testing '%s' (%s) ..", label, iteration_label)
-                self.clear_directory(os.path.join(directory, 'node_modules'))
                 timer = Timer()
                 if name == 'npm-accel':
                     self.installer_name = 'npm'
