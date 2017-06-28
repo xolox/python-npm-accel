@@ -250,6 +250,7 @@ class NpmAccel(PropertyManager):
         :raises: Any exceptions raised by the :mod:`executor.contexts` module.
         """
         results = []
+        baseline = None
         for name, label in (('npm', 'npm install'),
                             ('yarn', 'yarn'),
                             ('npm-accel', 'npm-accel'),
@@ -280,16 +281,21 @@ class NpmAccel(PropertyManager):
                 try:
                     self.install(directory, silent=silent)
                 except ExternalCommandFailed:
-                    status = "Failed! (after %s)" % timer
+                    label += " (failed)"
                     if terminal_supports_colors():
-                        status = ansi_wrap(status, color='red')
-                    results.append((label, iteration_label, status))
+                        label = ansi_wrap(label, color='red')
+                    results.append((label, iteration_label, str(timer), '-'))
                     # We skip the second iteration on failure.
                     break
                 else:
-                    results.append((label, iteration_label, str(timer)))
+                    if baseline is None:
+                        baseline = timer.elapsed_time
+                        percentage = '100%'
+                    else:
+                        percentage = '%.2f%%' % (timer.elapsed_time / (baseline / 100.0))
+                    results.append((label, iteration_label, str(timer), percentage))
                 logger.info("Took %s for '%s' (%s).", timer, label, iteration_label)
-        print(format_table(results, column_names=["Approach", "Iteration", "Elapsed time"]))
+        print(format_table(results, column_names=["Approach", "Iteration", "Elapsed time", "Percentage"]))
 
     def clean_cache(self):
         """Remove old and unused archives from the cache directory."""
