@@ -89,6 +89,11 @@ class NpmAccelTestCase(TestCase):
         with CustomSearchPath(isolated=True):
             accelerator = NpmAccel(context=create_context())
             assert accelerator.default_installer == 'npm'
+        # Check that non-default installers are ignored when unavailable.
+        with CustomSearchPath(isolated=True):
+            accelerator = NpmAccel(context=create_context())
+            accelerator.installer_name == 'npm-cache'
+            assert accelerator.installer_name == accelerator.default_installer
         # All of the following assertions can share the same program instance.
         accelerator = NpmAccel(context=create_context())
         # Make sure the default installer is 'npm' or 'yarn'.
