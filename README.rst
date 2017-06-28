@@ -137,30 +137,31 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
 
 
    "``-p``, ``--production``","Don't install modules listed in ""devDependencies""."
-   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are
-   ""npm"" (the default), ""npm-cache"" and ""npm-fast-install""."
+   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm""
+   (the default), ""yarn"", ""npm-cache"" and ""npm-fast-install""."
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
    "``-l``, ``--cache-limit=COUNT``","Set the maximum number of tar archives to preserve. When the cache
    directory contains more than ``COUNT`` archives the least recently used
    archives are removed. Defaults to 20."
    "``-n``, ``--no-cache``","Disallow writing to the cache managed by npm-accel (reading is still
-   allowed though). This option does not disable caching performed by
-   npm-cache and npm-fast-install."
+   allowed though). This option does not disable internal caching
+   performed by npm, yarn, npm-cache and npm-fast-install."
    "``-b``, ``--benchmark``","Benchmark and compare the following installation methods:
    
    1. npm install
-   2. npm-accel
-   3. npm-cache
-   4. npm-fast-install
+   2. yarn
+   3. npm-accel
+   4. npm-cache
+   5. npm-fast-install
    
    The first method performs no caching (except for the HTTP caching that's
-   native to npm) while the other three methods each manage their own cache
+   native to npm) while the other four methods each manage their own cache
    (that is to say, the caching logic of npm-accel will only be used in the
    second method).
    
-   Warning: Benchmarking wipes the caches managed by npm, npm-accel, npm-cache
-   and npm-fast-install in order to provide a fair comparison (you can
-   override this in the Python API but not on the command line)."
+   Warning: Benchmarking wipes the caches managed by npm, yarn, npm-accel,
+   npm-cache and npm-fast-install in order to provide a fair comparison
+   (you can override this in the Python API but not on the command line)."
    "``-r``, ``--remote-host=SSH_ALIAS``","Operate on a remote system instead of the local system. The
    ``SSH_ALIAS`` argument gives the SSH alias of the remote host."
    "``-v``, ``--verbose``",Increase logging verbosity (can be repeated).

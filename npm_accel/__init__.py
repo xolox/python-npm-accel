@@ -61,17 +61,17 @@ class NpmAccel(PropertyManager):
         """
         One of the strings ``--production=true`` or ``--production=false`` (depending on :attr:`production`).
 
-        This command line option is given to the ``npm install``, ``npm prune``
-        and ``npm-cache`` programs to explicitly switch between production and
-        development installations (``npm-fast-install`` is a special case
-        because the option has no effect and so instead npm-accel implements
-        a workaround).
+        This command line option is given to the ``npm install``, ``npm
+        prune``, ``yarn`` and ``npm-cache`` commands to explicitly switch
+        between production and development installations (``npm-fast-install``
+        is a special case because the option has no effect and so instead
+        npm-accel implements a workaround).
         """
         return '--production=%s' % ('true' if self.production else 'false')
 
     @mutable_property
     def installer_name(self):
-        """The name of the installer to use (one of the strings 'npm', 'npm-cache' or 'npm-fast-install')."""
+        """The name of the installer to use (one of the strings 'npm', 'yarn', 'npm-cache' or 'npm-fast-install')."""
         return 'npm'
 
     @property
@@ -84,6 +84,8 @@ class NpmAccel(PropertyManager):
         """
         if self.installer_name == 'npm':
             return self.install_with_npm
+        elif self.installer_name == 'yarn':
+            return self.install_with_yarn
         elif self.installer_name == 'npm-cache':
             return self.install_with_npm_cache
         elif self.installer_name == 'npm-fast-install':
@@ -417,6 +419,26 @@ class NpmAccel(PropertyManager):
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with npm.", timer)
 
+    def install_with_yarn(self, directory, silent=False):
+        """
+        Use yarn_ to install dependencies.
+
+        :param directory: The pathname of a directory with a ``package.json`` file (a string).
+        :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
+        :raises: Any exceptions raised by the :mod:`executor.contexts` module.
+
+        If the yarn_ command isn't already installed (globally) it will be
+        installed (locally).
+
+        .. _yarn: https://www.npmjs.com/package/yarn
+        """
+        timer = Timer()
+        program_name = self.prepare_installer(directory, 'yarn', silent=silent)
+        install_command = [program_name, self.production_option]
+        logger.info("Running command: %s", quote(install_command))
+        self.context.execute(*install_command, directory=directory, silent=silent)
+        logger.verbose("Took %s to install with yarn.", timer)
+
     def install_with_npm_cache(self, directory, silent=False):
         """
         Use npm-cache_ to install dependencies.
@@ -536,7 +558,7 @@ class NpmAccel(PropertyManager):
 
     def benchmark(self, directory, iterations=2, reset_caches=True, silent=False):
         """
-        Benchmark ``npm install``, ``npm-accel``, ``npm-cache`` and ``npm-fast-install``.
+        Benchmark ``npm install``, ``yarn``, ``npm-accel``, ``npm-cache`` and ``npm-fast-install``.
 
         :param directory: The pathname of a directory with a ``package.json`` file (a string).
         :param iterations: The number of times to run each installation command.
@@ -548,15 +570,18 @@ class NpmAccel(PropertyManager):
         """
         results = []
         for name, label in (('npm', 'npm install'),
+                            ('yarn', 'yarn'),
                             ('npm-accel', 'npm-accel'),
                             ('npm-cache', 'npm-cache install npm'),
                             ('npm-fast-install', 'npm-fast-install')):
             # Reset all caches before the first run of each installer?
             if reset_caches:
-                self.clear_directory('~/.npm')               # npm
-                self.clear_directory('~/.npm-fast-install')  # npm-fast-install
-                self.clear_directory('~/.package_cache')     # npm-cache
-                self.clear_directory(self.cache_directory)   # npm-accel
+                self.clear_directory('~/.npm')
+                self.clear_directory('~/.npm-fast-install')
+                self.clear_directory('~/.cache/yarn')
+                self.clear_directory('~/.package_cache')  # npm-cache
+                self.clear_directory(self.cache_directory)
+                self.clear_directory(os.path.join(directory, 'node_modules'))
             # Run the test twice, the first time to prime the cache
             # and the second time to actually use the cache.
             for i in range(1, iterations + 1):

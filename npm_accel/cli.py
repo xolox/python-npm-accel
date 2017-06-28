@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 24, 2017
+# Last Change: June 28, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """
@@ -24,8 +24,8 @@ Supported options:
 
   -i, --installer=NAME
 
-    Set the installer to use. Supported values for NAME are
-    `npm' (the default), `npm-cache' and `npm-fast-install'.
+    Set the installer to use. Supported values for NAME are `npm'
+    (the default), `yarn', `npm-cache' and `npm-fast-install'.
 
   -c, --cache-directory=DIR
 
@@ -40,26 +40,27 @@ Supported options:
   -n, --no-cache
 
     Disallow writing to the cache managed by npm-accel (reading is still
-    allowed though). This option does not disable caching performed by
-    npm-cache and npm-fast-install.
+    allowed though). This option does not disable internal caching
+    performed by npm, yarn, npm-cache and npm-fast-install.
 
   -b, --benchmark
 
     Benchmark and compare the following installation methods:
 
     1. npm install
-    2. npm-accel
-    3. npm-cache
-    4. npm-fast-install
+    2. yarn
+    3. npm-accel
+    4. npm-cache
+    5. npm-fast-install
 
     The first method performs no caching (except for the HTTP caching that's
-    native to npm) while the other three methods each manage their own cache
+    native to npm) while the other four methods each manage their own cache
     (that is to say, the caching logic of npm-accel will only be used in the
     second method).
 
-    Warning: Benchmarking wipes the caches managed by npm, npm-accel, npm-cache
-    and npm-fast-install in order to provide a fair comparison (you can
-    override this in the Python API but not on the command line).
+    Warning: Benchmarking wipes the caches managed by npm, yarn, npm-accel,
+    npm-cache and npm-fast-install in order to provide a fair comparison
+    (you can override this in the Python API but not on the command line).
 
   -r, --remote-host=SSH_ALIAS
 
