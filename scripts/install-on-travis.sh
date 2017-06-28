@@ -38,7 +38,7 @@ sudo npm install -g npm-fast-install
 #
 # Breakage encountered here:
 # https://travis-ci.org/xolox/python-npm-accel/builds/247761572
-rm -fr /home/travis/.config/yarn/global
+sudo rm -fr /home/travis/.config/yarn/global
 
 # Install the project itself, making sure that potential character encoding
 # and/or decoding errors in the setup script are caught as soon as possible.
