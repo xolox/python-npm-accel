@@ -49,6 +49,19 @@ class NpmAccelTestCase(TestCase):
         returncode, output = run_cli(main, 'a', 'b')
         assert returncode != 0
 
+    def test_cache_directory(self):
+        """Make sure the default cache directory is writable."""
+        accelerator = NpmAccel(context=create_context())
+        directory = accelerator.cache_directory
+        # The actual cache directory might not exist, but in that case one of
+        # its parent directories is expected to exist and be writable for the
+        # current user.
+        for _ in range(100):
+            try:
+                assert os.access(directory, os.W_OK)
+            except AssertionError:
+                directory = os.path.dirname(directory)
+
     def test_implicit_local_directory(self):
         """Make sure local installation implicitly uses the working directory."""
         saved_cwd = os.getcwd()
