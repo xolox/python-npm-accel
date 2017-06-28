@@ -503,26 +503,19 @@ class NpmAccel(PropertyManager):
         timer = Timer()
         program_name = 'npm-fast-install'
         package_file = os.path.join(directory, 'package.json')
-        original_contents = self.context.read_file(package_file)
         metadata = dict(dependencies={}, devDependencies={})
-        metadata.update(json.loads(auto_decode(original_contents)))
+        metadata.update(json.loads(auto_decode(self.context.read_file(package_file))))
         need_patch = metadata['devDependencies'] and not self.production
-        try:
-            # Temporarily change the contents of the package.json file?
-            if need_patch:
-                logger.debug("Temporarily patching %s ..", package_file)
-                patched_data = copy.deepcopy(metadata)
-                patched_data['dependencies'].update(patched_data['devDependencies'])
-                patched_data.pop('devDependencies')
-                self.context.write_file(package_file, json.dumps(patched_data).encode('UTF-8'))
-            # Run the npm-fast-install command.
-            logger.info("Running command: %s", quote(program_name))
-            self.context.execute(program_name, directory=directory, silent=silent)
-        finally:
-            # Restore the original contents of the package.json file?
-            if need_patch:
-                logger.debug("Restoring original contents of %s ..", package_file)
-                self.context.write_file(package_file, original_contents)
+        # Temporarily change the contents of the package.json file?
+        if need_patch:
+            logger.verbose("Temporarily patching %s ..", package_file)
+            patched_data = copy.deepcopy(metadata)
+            patched_data['dependencies'].update(patched_data['devDependencies'])
+            patched_data.pop('devDependencies')
+            self.context.write_file(package_file, json.dumps(patched_data).encode('UTF-8'))
+        # Run the npm-fast-install command.
+        logger.info("Running command: %s", quote(program_name))
+        self.context.execute(program_name, directory=directory, silent=silent)
         logger.verbose("Took %s to install with npm-fast-install.", timer)
 
     @contextlib.contextmanager
