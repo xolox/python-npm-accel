@@ -22,7 +22,7 @@ directory from scratch (e.g. continuous integration builds and deployments).
 I'm specifically not claiming that you will see any speed improvements if
 you're updating existing node_modules directories.
 
-The npm-accel program is currently tested on Python 2.6, 2.7, 3.4, 3.5 and PyPy
+The npm-accel program is currently tested on Python 2.7, 3.4, 3.5, 3.6 and PyPy
 (yes, it's written in Python, deal with it :-P). It's intended to work on UNIX
 systems like Linux and Mac OS X and specifically won't work on Windows (see
 `supported operating systems`_ for details).
