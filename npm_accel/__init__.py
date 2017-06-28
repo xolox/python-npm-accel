@@ -191,7 +191,8 @@ class NpmAccel(PropertyManager):
         logger.info("Installing Node.js package(s) in %s ..", format_path(directory))
         if dependencies:
             file_in_cache = self.get_cache_file(dependencies)
-            logger.verbose("Checking the cache (%s) ..", file_in_cache)
+            if self.read_from_cache:
+                logger.verbose("Checking the cache (%s) ..", file_in_cache)
             if self.read_from_cache and self.context.is_file(file_in_cache):
                 self.install_from_cache(file_in_cache, modules_directory)
                 logger.info("Done! Took %s to install %s from cache.",
@@ -204,8 +205,9 @@ class NpmAccel(PropertyManager):
                         self.prune_dependencies(directory)
                 if self.write_to_cache:
                     self.add_to_cache(modules_directory, file_in_cache)
-                logger.info("Done! Took %s to install %s using npm.",
-                            timer, pluralize(len(dependencies), "dependency", "dependencies"))
+                logger.info("Done! Took %s to install %s using %s.", timer,
+                            pluralize(len(dependencies), "dependency", "dependencies"),
+                            self.installer_name)
             self.clean_cache()
         else:
             logger.info("Nothing to do! (no dependencies to install)")
@@ -374,11 +376,14 @@ class NpmAccel(PropertyManager):
                   this ever becomes a problem for someone I can improve it to
                   preserve the metadata.
         """
-        if self.context.is_directory(directory):
-            logger.verbose("Cleaning up existing directory (%s)..", directory)
-            self.context.execute('rm', '-fr', directory)
-        logger.verbose("Creating directory (%s)..", directory)
-        self.context.execute('mkdir', '-p', directory)
+        parsed_directory = parse_path(directory)
+        formatted_directory = format_path(parsed_directory)
+        if self.context.is_directory(parsed_directory):
+            logger.verbose("Clearing directory contents (%s)..", formatted_directory)
+            self.context.execute('rm', '-fr', parsed_directory)
+        else:
+            logger.verbose("Creating directory (%s)..", formatted_directory)
+        self.context.execute('mkdir', '-p', parsed_directory)
 
     def prune_dependencies(self, directory, silent=False):
         """
