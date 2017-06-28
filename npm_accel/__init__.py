@@ -42,6 +42,18 @@ class NpmAccel(PropertyManager):
 
     """Python API for the ``npm-accel`` program."""
 
+    @mutable_property(cached=True)
+    def cache_directory(self):
+        """The absolute pathname of the directory where ``node_modules`` directories are cached (a string)."""
+        return ('/var/cache/npm-accel'
+                if os.getuid() == 0 and os.access('/var/cache', os.W_OK)
+                else parse_path('~/.cache/npm-accel'))
+
+    @mutable_property
+    def cache_limit(self):
+        """The maximum number of tar archives to preserve in the cache (an integer, defaults to 20)."""
+        return 20
+
     @required_property
     def context(self):
         """A command execution context created using :mod:`executor.contexts`."""
@@ -56,37 +68,30 @@ class NpmAccel(PropertyManager):
         'npm'.
         """
         if self.context.find_program('yarn'):
-            logger.verbose("It looks like 'yarn' is installed, will use it instead of 'npm install'.")
+            logger.verbose("Selecting 'yarn' as default installer.")
             return 'yarn'
         else:
-            logger.verbose("It looks like 'yarn' is not installed, falling back to 'npm install'.")
+            logger.verbose("Selecting 'npm' as default installer ('yarn' isn't installed).")
             return 'npm'
 
-    @mutable_property
-    def production(self):
-        """
-        :data:`True` if devDependencies_ should be ignored, :data:`False` to have them installed.
-
-        The value of :attr:`production` defaults to :data:`True` when the
-        environment variable ``$NODE_ENV`` is set to ``production``, otherwise
-        it defaults to :data:`False`.
-
-        .. _devDependencies: https://docs.npmjs.com/files/package.json#devdependencies
-        """
-        return os.environ.get('NODE_ENV') == 'production'
-
     @property
-    def production_option(self):
+    def installer_method(self):
         """
-        One of the strings ``--production=true`` or ``--production=false`` (depending on :attr:`production`).
+        The method corresponding to :attr:`installer_name` (a callable).
 
-        This command line option is given to the ``npm install``, ``npm
-        prune``, ``yarn`` and ``npm-cache`` commands to explicitly switch
-        between production and development installations (``npm-fast-install``
-        is a special case because the option has no effect and so instead
-        npm-accel implements a workaround).
+        :raises: :exc:`~exceptions.ValueError` if the value of
+                 :attr:`installer_name` is not supported.
         """
-        return '--production=%s' % ('true' if self.production else 'false')
+        if self.installer_name == 'npm':
+            return self.install_with_npm
+        elif self.installer_name == 'yarn':
+            return self.install_with_yarn
+        elif self.installer_name == 'npm-cache':
+            return self.install_with_npm_cache
+        elif self.installer_name == 'npm-fast-install':
+            return self.install_with_npm_fast_install
+        else:
+            raise ValueError("The requested installer is not supported! (%r)" % self.installer_name)
 
     @mutable_property(cached=True)
     def installer_name(self):
@@ -116,67 +121,6 @@ class NpmAccel(PropertyManager):
                            value, self.default_installer)
             value = self.default_installer
         set_property(self, 'installer_name', value)
-
-    @property
-    def installer_method(self):
-        """
-        The method corresponding to :attr:`installer_name` (a callable).
-
-        :raises: :exc:`~exceptions.ValueError` if the value of
-                 :attr:`installer_name` is not supported.
-        """
-        if self.installer_name == 'npm':
-            return self.install_with_npm
-        elif self.installer_name == 'yarn':
-            return self.install_with_yarn
-        elif self.installer_name == 'npm-cache':
-            return self.install_with_npm_cache
-        elif self.installer_name == 'npm-fast-install':
-            return self.install_with_npm_fast_install
-        else:
-            raise ValueError("The requested installer is not supported! (%r)" % self.installer_name)
-
-    @mutable_property(cached=True)
-    def cache_directory(self):
-        """The absolute pathname of the directory where ``node_modules`` directories are cached (a string)."""
-        return ('/var/cache/npm-accel'
-                if os.getuid() == 0 and os.access('/var/cache', os.W_OK)
-                else parse_path('~/.cache/npm-accel'))
-
-    @mutable_property
-    def cache_limit(self):
-        """The maximum number of tar archives to preserve in the cache (an integer, defaults to 20)."""
-        return 20
-
-    @mutable_property
-    def prune_needed(self):
-        """
-        :data:`True` to use ``npm prune`` after installation, :data:`False` otherwise.
-
-        If possible the use of ``npm prune`` is avoided by npm-accel, instead
-        it prefers wiping and rebuilding the ``node_modules`` tree from
-        scratch. This is because of the following observation made while
-        prototyping yarn integration in npm-accel based on a randomly picked
-        package.json file with about 30 dependencies:
-
-        - In the combination ``npm install && npm prune`` the prune command
-          finishes in about ten seconds.
-
-        - With the combination ``yarn && npm prune`` the prune command takes
-          more than a minute, completely negating the speed improvement that
-          yarn provided over ``npm install``.
-        """
-        return False
-
-    @mutable_property
-    def read_from_cache(self):
-        """:data:`True` if npm-accel is allowed to read from its cache, :data:`False` otherwise."""
-        return self.installer_name not in ('npm-cache', 'npm-fast-install')
-
-    @mutable_property
-    def write_to_cache(self):
-        """:data:`True` if npm-accel is allowed to write to its cache, :data:`False` otherwise."""
-        return self.installer_name not in ('npm-cache', 'npm-fast-install')
 
     @cached_property
     def nodejs_interpreter(self):
@@ -220,6 +164,62 @@ class NpmAccel(PropertyManager):
     def npm_version(self):
         """The output of the ``npm --version`` command (a string)."""
         return self.context.capture('npm', '--version')
+
+    @mutable_property
+    def production(self):
+        """
+        :data:`True` if devDependencies_ should be ignored, :data:`False` to have them installed.
+
+        The value of :attr:`production` defaults to :data:`True` when the
+        environment variable ``$NODE_ENV`` is set to ``production``, otherwise
+        it defaults to :data:`False`.
+
+        .. _devDependencies: https://docs.npmjs.com/files/package.json#devdependencies
+        """
+        return os.environ.get('NODE_ENV') == 'production'
+
+    @property
+    def production_option(self):
+        """
+        One of the strings ``--production=true`` or ``--production=false`` (depending on :attr:`production`).
+
+        This command line option is given to the ``npm install``, ``npm
+        prune``, ``yarn`` and ``npm-cache`` commands to explicitly switch
+        between production and development installations (``npm-fast-install``
+        is a special case because the option has no effect and so instead
+        npm-accel implements a workaround).
+        """
+        return '--production=%s' % ('true' if self.production else 'false')
+
+    @mutable_property
+    def prune_needed(self):
+        """
+        :data:`True` to use ``npm prune`` after installation, :data:`False` otherwise.
+
+        If possible the use of ``npm prune`` is avoided by npm-accel, instead
+        it prefers wiping and rebuilding the ``node_modules`` tree from
+        scratch. This is because of the following observation made while
+        prototyping yarn integration in npm-accel based on a randomly picked
+        package.json file with about 30 dependencies:
+
+        - In the combination ``npm install && npm prune`` the prune command
+          finishes in about ten seconds.
+
+        - With the combination ``yarn && npm prune`` the prune command takes
+          more than a minute, completely negating the speed improvement that
+          yarn provided over ``npm install``.
+        """
+        return False
+
+    @mutable_property
+    def read_from_cache(self):
+        """:data:`True` if npm-accel is allowed to read from its cache, :data:`False` otherwise."""
+        return self.installer_name not in ('npm-cache', 'npm-fast-install')
+
+    @mutable_property
+    def write_to_cache(self):
+        """:data:`True` if npm-accel is allowed to write to its cache, :data:`False` otherwise."""
+        return self.installer_name not in ('npm-cache', 'npm-fast-install')
 
     def install(self, directory, silent=False):
         """
