@@ -81,6 +81,10 @@ Supported options:
 
     Decrease logging verbosity (can be repeated).
 
+  --version
+
+    Report the version of npm-accel.
+
   -h, --help
 
     Show this message and exit.
@@ -96,10 +100,10 @@ import sys
 import coloredlogs
 from executor.contexts import create_context
 from humanfriendly import parse_path
-from humanfriendly.terminal import usage, warning
+from humanfriendly.terminal import output, usage, warning
 
 # Modules included in our package.
-from npm_accel import NpmAccel
+from npm_accel import __version__, NpmAccel
 from npm_accel.exceptions import NpmAccelError
 
 # Initialize a logger for this module.
@@ -120,7 +124,7 @@ def main():
         options, arguments = getopt.getopt(sys.argv[1:], 'pi:unc:l:br:vqh', [
             'production', 'installer=', 'update', 'no-cache',
             'cache-directory=', 'cache-limit=', 'benchmark', 'remote-host=',
-            'verbose', 'quiet', 'help',
+            'verbose', 'quiet', 'version', 'help',
         ])
         for option, value in options:
             if option in ('-p', '--production'):
@@ -144,6 +148,9 @@ def main():
                 coloredlogs.increase_verbosity()
             elif option in ('-q', '--quiet'):
                 coloredlogs.decrease_verbosity()
+            elif option == '--version':
+                output(__version__)
+                return
             elif option in ('-h', '--help'):
                 usage(__doc__)
                 return
