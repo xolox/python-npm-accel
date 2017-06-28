@@ -8,6 +8,7 @@
 
 # Standard library modules.
 import codecs
+import contextlib
 import copy
 import hashlib
 import json
@@ -176,8 +177,9 @@ class NpmAccel(PropertyManager):
                 logger.info("Done! Took %s to install %s from cache.",
                             timer, pluralize(len(dependencies), "dependency", "dependencies"))
             else:
-                self.installer_method(directory, silent=silent)
-                self.prune_dependencies(directory)
+                with self.preserve_contents(package_file):
+                    self.installer_method(directory, silent=silent)
+                    self.prune_dependencies(directory)
                 if self.write_to_cache:
                     self.add_to_cache(modules_directory, file_in_cache)
                 logger.info("Done! Took %s to install %s using npm.",
@@ -491,6 +493,18 @@ class NpmAccel(PropertyManager):
             logger.verbose("Installing %s locally (because it's not globally installed) ..", name)
             self.context.execute('npm', 'install', '--no-save', name, directory=directory, silent=silent)
         return absolute_path
+
+    @contextlib.contextmanager
+    def preserve_contents(self, filename):
+        """
+        Restore the contents of a file after the context ends.
+
+        :param filename: The pathname of the file (a string).
+        :returns: A context manager.
+        """
+        contents = self.context.read_file(filename)
+        yield
+        self.context.write_file(filename, contents)
 
     def benchmark(self, directory, iterations=2, reset_caches=True, silent=False):
         """
