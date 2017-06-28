@@ -17,7 +17,7 @@ from executor import execute
 from executor.contexts import create_context
 from humanfriendly import Timer
 from humanfriendly.text import random_string
-from humanfriendly.testing import TemporaryDirectory, TestCase, run_cli
+from humanfriendly.testing import CustomSearchPath, MockedProgram, TemporaryDirectory, TestCase, run_cli
 
 # Modules included in our package.
 from npm_accel import NpmAccel
@@ -76,8 +76,17 @@ class NpmAccelTestCase(TestCase):
         returncode, output = run_cli(main, '--remote-host=localhost')
         assert returncode != 0
 
-    def test_installer_validation(self):
+    def test_installer_selection(self):
         """Make sure the installer name is properly validated."""
+        # Check that 'yarn' is the default installer when available.
+        with MockedProgram(name='yarn'):
+            accelerator = NpmAccel(context=create_context())
+            assert accelerator.default_installer == 'yarn'
+        # Check that 'npm' is the default installer when 'yarn' isn't available.
+        with CustomSearchPath(isolated=True):
+            accelerator = NpmAccel(context=create_context())
+            assert accelerator.default_installer == 'npm'
+        # All of the following assertions can share the same program instance.
         accelerator = NpmAccel(context=create_context())
         # Make sure the default installer is 'npm' or 'yarn'.
         assert accelerator.installer_name in ('yarn', 'npm')
