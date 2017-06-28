@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 28, 2017
+# Last Change: June 29, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """
@@ -118,9 +118,9 @@ def main():
             'help',
         ])
         for option, value in options:
-            if option in ('p', '--production'):
+            if option in ('-p', '--production'):
                 program_opts['production'] = True
-            elif option in ('i', '--installer'):
+            elif option in ('-i', '--installer'):
                 program_opts['installer_name'] = value
             elif option in ('-c', '--cache-directory'):
                 program_opts['cache_directory'] = parse_path(value)
