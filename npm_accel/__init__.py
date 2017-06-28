@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 28, 2017
+# Last Change: June 29, 2017
 # URL: https://github.com/xolox/python-npm-accel
 
 """Accelerator for npm, the Node.js package manager."""
@@ -432,7 +432,7 @@ class NpmAccel(PropertyManager):
         package_file = os.path.join(directory, 'package.json')
         modules_directory = os.path.join(directory, 'node_modules')
         dependencies = self.extract_dependencies(package_file)
-        logger.info("Installing Node.js package(s) in %s ..", format_path(directory))
+        logger.info("Installing Node.js packages in %s ..", format_path(directory))
         if dependencies:
             file_in_cache = self.get_cache_file(dependencies)
             if self.read_from_cache:
