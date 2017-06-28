@@ -30,67 +30,6 @@ systems like Linux and Mac OS X and specifically won't work on Windows (see
 .. contents::
    :local:
 
-Status
-------
-
-The npm-accel project was developed and published in September '16 because I
-got fed up waiting for ``npm install`` to finish, specifically in the context
-of continuous integration builds and deployments (where you frequently start
-with an empty ``node_modules`` directory). It was developed in about a week
-without much prior knowledge about Node.js_ or npm_, which explains why it's
-written in Python :-P.
-
-The project was initially published with 95% test coverage and I was careful
-not to repeat the bugs I encountered in npm-cache_ and npm-fast-install_ while
-evaluating those tools :-).
-
-At the time of writing (June '17) npm-accel has been in active use at my
-employer for about nine months. During that time our builds have become bigger
-and slower and so I wanted npm-accel to be even faster :-). To this end I've
-removed the use of ``npm prune`` and integrated support for yarn_ (it will be
-used automatically in preference over npm_ when it is installed).
-
-To summarize: Give it a try, see if it actually speeds up your ``npm install``
-use case and then decide whether you want to use it or not. The current release
-of npm-accel is labeled as a `beta release`_ because of the recent refactoring
-that removed ``npm prune``, integrated yarn and cleaned up the code base.
-
-Performance
------------
-
-The following table lists the output of ``npm-accel --benchmark`` against a
-private code base with 58 dependencies listed in the package.json file
-(resulting in a 357 MB node_modules directory):
-
-=========================  =========  ===========================  ==========
-Approach                   Iteration  Elapsed time                 Percentage
-=========================  =========  ===========================  ==========
-npm install                   1 of 2                42.47 seconds     100.00%
-npm install                   2 of 2                27.92 seconds      65.73%
-yarn                          1 of 2                33.32 seconds      78.45%
-yarn                          2 of 2                17.66 seconds      41.59%
-npm-accel                     1 of 2                28.22 seconds      66.45%
-npm-accel                     2 of 2                  1.79 second       4.22%
-npm-cache install npm         1 of 2    1 minute and 2.88 seconds     148.06%
-npm-cache install npm         2 of 2                15.87 seconds      37.35%
-npm-fast-install              1 of 2  9 minutes and 35.35 seconds    1354.62%
-npm-fast-install (failed)     2 of 2                           \-          \-
-=========================  =========  ===========================  ==========
-
-Some notes about this benchmark:
-
-- Each of the five installation methods (npm, yarn, npm-accel, npm-cache and
-  npm-fast-install) is run twice. The first run starts with empty cache
-  directories and is intended to "prime the cache". The second run is intended
-  to actually use the cache and should be able to do so quite effectively,
-  given that the package.json file does not change between the two runs.
-
-- During the benchmark, the caching performed by npm-accel is only used in the
-  sixth row of the table above. This is because the original point of the
-  benchmark (for me) was to find out whether it was even worth it to develop
-  and publish npm-accel. That is to say, if it wouldn't have given a speed
-  improvement it wasn't worth my time, nor yours :-P.
-
 Installation
 ------------
 
@@ -183,13 +122,66 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
 
 .. [[[end]]]
 
-Future improvements
--------------------
+Status
+------
 
-**Dealing with optionalDependencies**
- I've never seen ``optionalDependencies`` in the wild but encountered them
- while browsing through the package.json_ documentation. Maybe these should be
- part of the computed cache keys aswell?
+The npm-accel project was developed and published in September '16 because I
+got fed up waiting for ``npm install`` to finish, specifically in the context
+of continuous integration builds and deployments (where you frequently start
+with an empty ``node_modules`` directory). It was developed in about a week
+without much prior knowledge about Node.js_ or npm_, which explains why it's
+written in Python :-P.
+
+The project was initially published with 95% test coverage and I was careful
+not to repeat the bugs I encountered in npm-cache_ and npm-fast-install_ while
+evaluating those tools :-).
+
+At the time of writing (June '17) npm-accel has been in active use at my
+employer for about nine months. During that time our builds have become bigger
+and slower and so I wanted npm-accel to be even faster :-). To this end I've
+removed the use of ``npm prune`` and integrated support for yarn_ (it will be
+used automatically in preference over npm_ when it is installed).
+
+To summarize: Give it a try, see if it actually speeds up your ``npm install``
+use case and then decide whether you want to use it or not. The current release
+of npm-accel is labeled as a `beta release`_ because of the recent refactoring
+that removed ``npm prune``, integrated yarn and cleaned up the code base.
+
+Performance
+-----------
+
+The following table lists the output of ``npm-accel --benchmark`` against a
+private code base with 58 dependencies listed in the package.json file
+(resulting in a 357 MB node_modules directory):
+
+=========================  =========  ===========================  ==========
+Approach                   Iteration  Elapsed time                 Percentage
+=========================  =========  ===========================  ==========
+npm install                   1 of 2                42.47 seconds     100.00%
+npm install                   2 of 2                27.92 seconds      65.73%
+yarn                          1 of 2                33.32 seconds      78.45%
+yarn                          2 of 2                17.66 seconds      41.59%
+npm-accel                     1 of 2                28.22 seconds      66.45%
+npm-accel                     2 of 2                  1.79 second       4.22%
+npm-cache install npm         1 of 2    1 minute and 2.88 seconds     148.06%
+npm-cache install npm         2 of 2                15.87 seconds      37.35%
+npm-fast-install              1 of 2  9 minutes and 35.35 seconds    1354.62%
+npm-fast-install (failed)     2 of 2                           \-          \-
+=========================  =========  ===========================  ==========
+
+Some notes about this benchmark:
+
+- Each of the five installation methods (npm, yarn, npm-accel, npm-cache and
+  npm-fast-install) is run twice. The first run starts with empty cache
+  directories and is intended to "prime the cache". The second run is intended
+  to actually use the cache and should be able to do so quite effectively,
+  given that the package.json file does not change between the two runs.
+
+- During the benchmark, the caching performed by npm-accel is only used in the
+  sixth row of the table above. This is because the original point of the
+  benchmark (for me) was to find out whether it was even worth it to develop
+  and publish npm-accel. That is to say, if it wouldn't have given a speed
+  improvement it wasn't worth my time, nor yours :-P.
 
 .. _supported operating systems:
 
@@ -209,6 +201,14 @@ this as a bug.
 For posterity: It was a conscious decision (for several reasons) to use the
 tar_ program instead of manipulating tar archives via Python's `tarfile
 module`_.
+
+Future improvements
+-------------------
+
+**Dealing with optionalDependencies**
+ I've never seen ``optionalDependencies`` in the wild but encountered them
+ while browsing through the package.json_ documentation. Maybe these should be
+ part of the computed cache keys aswell?
 
 Contact
 -------
