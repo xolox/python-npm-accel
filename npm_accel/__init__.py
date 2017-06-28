@@ -155,9 +155,10 @@ class NpmAccel(PropertyManager):
         logger.debug("Discovering name of Node.js interpreter ..")
         for interpreter in 'nodejs', 'node':
             logger.debug("Checking availability of program: %s", interpreter)
-            if self.context.find_program(interpreter):
-                logger.debug("Found name of Node.js interpreter: %s", interpreter)
-                return interpreter
+            matches = self.context.find_program(interpreter)
+            if matches:
+                logger.debug("Found Node.js interpreter: %s", matches[0])
+                return matches[0]
         raise MissingNodeInterpreterError("Missing Node.js interpreter! (expected to find 'nodejs' or 'node')")
 
     @cached_property
