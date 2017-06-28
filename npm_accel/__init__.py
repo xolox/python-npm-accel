@@ -106,12 +106,12 @@ class NpmAccel(PropertyManager):
     @mutable_property
     def read_from_cache(self):
         """:data:`True` if npm-accel is allowed to read from its cache, :data:`False` otherwise."""
-        return self.installer_name != 'npm-cache'
+        return self.installer_name not in ('npm-cache', 'npm-fast-install')
 
     @mutable_property
     def write_to_cache(self):
         """:data:`True` if npm-accel is allowed to write to its cache, :data:`False` otherwise."""
-        return self.installer_name != 'npm-cache'
+        return self.installer_name not in ('npm-cache', 'npm-fast-install')
 
     @cached_property
     def nodejs_interpreter(self):
