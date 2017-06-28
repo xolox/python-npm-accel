@@ -40,7 +40,17 @@ logger = VerboseLogger(__name__)
 
 class NpmAccel(PropertyManager):
 
-    """Python API for the ``npm-accel`` program."""
+    """
+    Python API for npm-accel.
+
+    When you create an :class:`NpmAccel` object you're required to provide a
+    :attr:`context` by passing a keyword argument to the constructor. The
+    following writable properties can be set in this same way:
+    :attr:`cache_directory`, :attr:`cache_limit`, :attr:`context`,
+    :attr:`installer_name`, :attr:`production`, :attr:`read_from_cache`,
+    :attr:`write_to_cache`. Once you've initialized npm-accel the most useful
+    method to call is :func:`install()`.
+    """
 
     @mutable_property(cached=True)
     def cache_directory(self):
@@ -464,9 +474,6 @@ class NpmAccel(PropertyManager):
         :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
         :raises: Any exceptions raised by the :mod:`executor.contexts` module.
 
-        If the yarn_ command isn't already installed (globally) it will be
-        installed (locally).
-
         .. _yarn: https://www.npmjs.com/package/yarn
         """
         timer = Timer()
@@ -499,9 +506,6 @@ class NpmAccel(PropertyManager):
         :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
         :raises: Any exceptions raised by the :mod:`executor.contexts` module.
 
-        If the ``npm-cache`` command isn't already installed (globally) it will
-        be installed (locally).
-
         .. warning:: When I tried out npm-cache_ for the second time I found
                      out that it unconditionally includes both production
                      dependencies_ and devDependencies_ in the cache keys that
@@ -528,9 +532,6 @@ class NpmAccel(PropertyManager):
         :param directory: The pathname of a directory with a ``package.json`` file (a string).
         :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
         :raises: Any exceptions raised by the :mod:`executor.contexts` module.
-
-        If the ``npm-fast-install`` command isn't already installed (globally)
-        it will be installed (locally).
 
         .. warning:: When I tried out npm-fast-install_ for the first time I
                      found out that ``npm-fast-install --all`` fails to
