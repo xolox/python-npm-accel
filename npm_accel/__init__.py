@@ -183,33 +183,13 @@ class NpmAccel(PropertyManager):
         """
         One of the strings ``--production=true`` or ``--production=false`` (depending on :attr:`production`).
 
-        This command line option is given to the ``npm install``, ``npm
-        prune``, ``yarn`` and ``npm-cache`` commands to explicitly switch
-        between production and development installations (``npm-fast-install``
-        is a special case because the option has no effect and so instead
-        npm-accel implements a workaround).
+        This command line option is given to the ``npm install``, ``yarn`` and
+        ``npm-cache`` commands to explicitly switch between production and
+        development installations (``npm-fast-install`` is a special case
+        because the option has no effect and so instead npm-accel implements a
+        workaround).
         """
         return '--production=%s' % ('true' if self.production else 'false')
-
-    @mutable_property
-    def prune_needed(self):
-        """
-        :data:`True` to use ``npm prune`` after installation, :data:`False` otherwise.
-
-        If possible the use of ``npm prune`` is avoided by npm-accel, instead
-        it prefers wiping and rebuilding the ``node_modules`` tree from
-        scratch. This is because of the following observation made while
-        prototyping yarn integration in npm-accel based on a randomly picked
-        package.json file with about 30 dependencies:
-
-        - In the combination ``npm install && npm prune`` the prune command
-          finishes in about ten seconds.
-
-        - With the combination ``yarn && npm prune`` the prune command takes
-          more than a minute, completely negating the speed improvement that
-          yarn provided over ``npm install``.
-        """
-        return False
 
     @mutable_property
     def read_from_cache(self):
@@ -246,8 +226,6 @@ class NpmAccel(PropertyManager):
                 self.clear_directory(modules_directory)
                 with self.preserve_contents(package_file):
                     self.installer_method(directory, silent=silent)
-                    if self.prune_needed:
-                        self.prune_dependencies(directory)
                 if self.write_to_cache:
                     self.add_to_cache(modules_directory, file_in_cache)
                 logger.info("Done! Took %s to install %s using %s.", timer,
@@ -430,22 +408,6 @@ class NpmAccel(PropertyManager):
             logger.verbose("Creating directory (%s)..", formatted_directory)
         self.context.execute('mkdir', '-p', parsed_directory)
 
-    def prune_dependencies(self, directory, silent=False):
-        """
-        Remove extraneous packages using `npm prune`_.
-
-        :param directory: The pathname of a directory with a ``package.json`` file (a string).
-        :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
-        :raises: Any exceptions raised by the :mod:`executor.contexts` module.
-
-        .. _npm prune: https://docs.npmjs.com/cli/prune
-        """
-        timer = Timer()
-        prune_command = ['npm', 'prune', self.production_option]
-        logger.info("Running command: %s", quote(prune_command))
-        self.context.execute(*prune_command, directory=directory, silent=silent)
-        logger.verbose("Took %s to run 'npm prune'.", timer)
-
     def install_with_npm(self, directory, silent=False):
         """
         Use `npm install`_ to install dependencies.
@@ -476,8 +438,7 @@ class NpmAccel(PropertyManager):
         .. _yarn: https://www.npmjs.com/package/yarn
         """
         timer = Timer()
-        program_name = self.prepare_installer(directory, 'yarn', silent=silent)
-        install_command = [program_name, self.production_option]
+        install_command = ['yarn', self.production_option]
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with yarn.", timer)
@@ -507,8 +468,7 @@ class NpmAccel(PropertyManager):
         .. _npm-cache issue 74: https://github.com/swarajban/npm-cache/issues/74
         """
         timer = Timer()
-        program_name = self.prepare_installer(directory, 'npm-cache', silent=silent)
-        install_command = [program_name, 'install', 'npm', self.production_option]
+        install_command = ['npm-cache', 'install', 'npm', self.production_option]
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with npm-cache.", timer)
@@ -541,7 +501,7 @@ class NpmAccel(PropertyManager):
         .. _npm-fast-install pull request 3: https://github.com/appcelerator/npm-fast-install/pull/3
         """
         timer = Timer()
-        program_name = self.prepare_installer(directory, 'npm-fast-install', silent=silent)
+        program_name = 'npm-fast-install'
         package_file = os.path.join(directory, 'package.json')
         original_contents = self.context.read_file(package_file)
         metadata = dict(dependencies={}, devDependencies={})
@@ -564,28 +524,6 @@ class NpmAccel(PropertyManager):
                 logger.debug("Restoring original contents of %s ..", package_file)
                 self.context.write_file(package_file, original_contents)
         logger.verbose("Took %s to install with npm-fast-install.", timer)
-
-    def prepare_installer(self, directory, name, silent=False):
-        """
-        Prepare a non-default installer.
-
-        :param directory: The pathname of the directory where the non-default
-                          installer should be installed if not already
-                          available globally (a string).
-        :param name: The name of the Node.js package and program (a string).
-        :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
-        :returns: The modified program name (a string).
-        """
-        logger.debug("Checking if installer is available globally: %s", name)
-        if self.context.find_program(name):
-            return name
-        absolute_path = os.path.join(directory, 'node_modules', '.bin', name)
-        logger.debug("Checking if installer is available locally: %s", absolute_path)
-        if not self.context.exists(absolute_path):
-            logger.verbose("Installing %s locally (because it's not globally installed) ..", name)
-            self.context.execute('npm', 'install', '--no-save', name, directory=directory, silent=silent)
-            self.prune_needed = True
-        return absolute_path
 
     @contextlib.contextmanager
     def preserve_contents(self, filename):

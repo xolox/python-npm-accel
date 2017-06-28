@@ -174,14 +174,6 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
 Future improvements
 -------------------
 
-**Accelerate installations with changes**
- Currently when the fingerprint (cache key) of the dependencies doesn't match a
- cache entry, the complete caching mechanism is bypassed and a full ``npm
- install`` run is performed. It might be faster to unpack a previous (now
- invalid) cache entry corresponding to the same project and then run ``npm
- install && npm prune``. Given the fact that defining "same project" might be
- non-trivial I'm not actually sure this is worth my time.
-
 **Dealing with optionalDependencies**
  I've never seen ``optionalDependencies`` in the wild but encountered them
  while browsing through the package.json_ documentation. Maybe these should be
