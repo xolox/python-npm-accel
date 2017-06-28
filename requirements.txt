@@ -1,7 +1,7 @@
 # Installation requirements for npm-accel.
 
 chardet >= 2.3.0
-executor >= 14.1
+executor >= 18.0
 humanfriendly >= 3.4.1
 property-manager >= 2.1
 verboselogs >= 1.5
