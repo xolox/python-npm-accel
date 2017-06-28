@@ -43,6 +43,22 @@ class NpmAccel(PropertyManager):
     def context(self):
         """A command execution context created using :mod:`executor.contexts`."""
 
+    @cached_property
+    def default_installer(self):
+        """
+        The name of the default installer to use (either 'npm' or 'yarn').
+
+        When the yarn program is available in the ``$PATH`` the value of
+        :attr:`default_installer` will be 'yarn', otherwise it falls back to
+        'npm'.
+        """
+        if self.context.find_program('yarn'):
+            logger.verbose("It looks like 'yarn' is installed, will use it instead of 'npm install'.")
+            return 'yarn'
+        else:
+            logger.verbose("It looks like 'yarn' is not installed, falling back to 'npm install'.")
+            return 'npm'
+
     @mutable_property
     def production(self):
         """
@@ -69,10 +85,15 @@ class NpmAccel(PropertyManager):
         """
         return '--production=%s' % ('true' if self.production else 'false')
 
-    @mutable_property
+    @mutable_property(cached=True)
     def installer_name(self):
-        """The name of the installer to use (one of the strings 'npm', 'yarn', 'npm-cache' or 'npm-fast-install')."""
-        return 'npm'
+        """
+        The name of the installer to use (one of the strings 'npm', 'yarn', 'npm-cache' or 'npm-fast-install').
+
+        The value of :attr:`installer_name` defaults to
+        the value of :attr:`default_installer`.
+        """
+        return self.default_installer
 
     @property
     def installer_method(self):

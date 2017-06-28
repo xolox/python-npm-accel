@@ -137,8 +137,9 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
 
 
    "``-p``, ``--production``","Don't install modules listed in ""devDependencies""."
-   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm""
-   (the default), ""yarn"", ""npm-cache"" and ""npm-fast-install""."
+   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm"", ""yarn"",
+   ""npm-cache"" and ""npm-fast-install"". When yarn is available it will be
+   selected as the default installer, otherwise the default is npm."
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
    "``-l``, ``--cache-limit=COUNT``","Set the maximum number of tar archives to preserve. When the cache
    directory contains more than ``COUNT`` archives the least recently used

@@ -24,8 +24,9 @@ Supported options:
 
   -i, --installer=NAME
 
-    Set the installer to use. Supported values for NAME are `npm'
-    (the default), `yarn', `npm-cache' and `npm-fast-install'.
+    Set the installer to use. Supported values for NAME are `npm', `yarn',
+    `npm-cache' and `npm-fast-install'. When yarn is available it will be
+    selected as the default installer, otherwise the default is npm.
 
   -c, --cache-directory=DIR
 
