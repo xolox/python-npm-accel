@@ -1,4 +1,4 @@
-# Installation requirements for npm-accel.
+# Installation dependencies.
 
 chardet >= 2.3.0
 executor >= 18.0

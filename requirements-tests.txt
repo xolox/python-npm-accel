@@ -1,0 +1,4 @@
+# Dependencies of `make test'.
+
+pytest >= 2.6.1
+pytest-cov >= 2.2.1

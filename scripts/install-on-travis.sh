@@ -16,6 +16,7 @@ pip install pip-accel
 pip-accel install coveralls
 pip-accel install --requirement=requirements.txt
 pip-accel install --requirement=requirements-checks.txt
+pip-accel install --requirement=requirements-tests.txt
 
 # On Linux workers we replace the default Node.js and npm install.
 if [ "$TRAVIS_OS_NAME" = linux ]; then
@@ -37,7 +38,8 @@ sudo npm install -g npm-fast-install
 #  EACCES: permission denied, mkdir '/home/travis/.config/yarn/global'
 #
 # Breakage encountered here:
-# https://travis-ci.org/xolox/python-npm-accel/builds/247761572
+#  - https://travis-ci.org/xolox/python-npm-accel/builds/247761572 (Linux)
+#  - https://travis-ci.org/xolox/python-npm-accel/jobs/248055260 (Mac OS X)
 sudo rm -fr ~/.config
 
 # Install the project itself, making sure that potential character encoding
