@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 29, 2017
+# Last Change: June 23, 2019
 # URL: https://github.com/xolox/python-npm-accel
 
 """Setup script for the `npm-accel` package."""
@@ -54,6 +54,7 @@ setup(
     url='https://github.com/xolox/python-npm-accel',
     author='Peter Odding',
     author_email='peter@peterodding.com',
+    license='MIT',
     packages=find_packages(),
     install_requires=get_requirements('requirements.txt'),
     entry_points=dict(console_scripts=[
