@@ -1,22 +1,33 @@
 Accelerator for npm, the Node.js package manager
 ================================================
 
-Welcome to the documentation of `npm-accel` version |release|!
+Welcome to the documentation of `npm-accel` version |release|! The
+following sections are available:
+
+.. contents::
+   :local:
 
 User documentation
 ------------------
 
-The readme is mostly targeted at users of the command line interface and is
-probably the best place to start reading:
+The readme is the best place to start reading, it's targeted at all users and
+documents the command line interface:
 
 .. toctree::
-   users.rst
+   readme.rst
 
 API documentation
 -----------------
 
-The following documentation is targeted at people who are interested in using
-the Python API:
+The following API documentation is automatically generated from the source code:
 
 .. toctree::
-   developers.rst
+   api.rst
+
+Change log
+----------
+
+The change log lists notable changes to the project:
+
+.. toctree::
+   changelog.rst
