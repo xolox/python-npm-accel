@@ -6,6 +6,7 @@
 if [ "$TRAVIS_OS_NAME" = osx ]; then
   VIRTUAL_ENV="$HOME/virtualenv/python2.7"
   if [ ! -x "$VIRTUAL_ENV/bin/python" ]; then
+    pip install virtualenv
     virtualenv "$VIRTUAL_ENV"
   fi
   source "$VIRTUAL_ENV/bin/activate"
