@@ -42,6 +42,10 @@ sudo npm install -g npm-fast-install
 #  - https://travis-ci.org/xolox/python-npm-accel/jobs/248055260 (Mac OS X)
 sudo rm -fr ~/.config
 
+# Try to work around the following Travis CI build failure:
+# https://travis-ci.org/xolox/python-npm-accel/jobs/549229079
+sudo rm -fr ~/.npm
+
 # Install the project itself, making sure that potential character encoding
 # and/or decoding errors in the setup script are caught as soon as possible.
 LC_ALL=C pip-accel install .
