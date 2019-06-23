@@ -14,10 +14,7 @@ fi
 
 # Install the required Python packages.
 pip install pip-accel
-pip-accel install coveralls
-pip-accel install --requirement=requirements.txt
-pip-accel install --requirement=requirements-checks.txt
-pip-accel install --requirement=requirements-tests.txt
+pip-accel install --requirement=requirements-travis.txt
 
 # On Linux workers we replace the default Node.js and npm install.
 if [ "$TRAVIS_OS_NAME" = linux ]; then
