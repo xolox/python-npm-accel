@@ -22,7 +22,7 @@ pip-accel install --requirement=requirements-tests.txt
 if [ "$TRAVIS_OS_NAME" = linux ]; then
   pip-accel install debuntu-tools
   rm -r /home/travis/.nvm
-  debuntu-nodejs-installer --install
+  debuntu-nodejs-installer --install --version=node_10.x
 fi
 
 # Upgrade and/or install the tools that we'll be using and benchmarking.
