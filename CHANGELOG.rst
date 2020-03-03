@@ -25,7 +25,7 @@ refactoring spree of the past few days. I've also changed the previous
 Detailed overview of changes:
 
 - Integrated support for ``yarn``:
-  
+
   - When available ``yarn`` is used in preference to ``npm``.
   - The benchmark now allows npm-accel to use ``yarn``.
 

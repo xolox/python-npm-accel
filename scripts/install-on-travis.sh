@@ -26,7 +26,6 @@ fi
 sudo npm install -g npm
 sudo npm install -g yarn
 sudo npm install -g npm-cache
-sudo npm install -g npm-fast-install
 
 # Try to work around the following rather obscure fatal error in
 # yarn due to Travis CI modifications that I'm not familiar with:

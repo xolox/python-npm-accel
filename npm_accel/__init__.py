@@ -9,7 +9,6 @@
 # Standard library modules.
 import codecs
 import contextlib
-import copy
 import hashlib
 import json
 import os
@@ -29,7 +28,7 @@ from verboselogs import VerboseLogger
 # Modules included in our package.
 from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreterError
 
-KNOWN_INSTALLERS = ('npm', 'yarn', 'npm-cache', 'npm-fast-install')
+KNOWN_INSTALLERS = ('npm', 'yarn', 'npm-cache')
 """A tuple of strings with the names of supported Node.js installers."""
 
 # Semi-standard module versioning.
@@ -99,8 +98,6 @@ class NpmAccel(PropertyManager):
             return self.install_with_yarn
         elif self.installer_name == 'npm-cache':
             return self.install_with_npm_cache
-        elif self.installer_name == 'npm-fast-install':
-            return self.install_with_npm_fast_install
         else:
             raise ValueError("The requested installer is not supported! (%r)" % self.installer_name)
 
@@ -196,21 +193,19 @@ class NpmAccel(PropertyManager):
 
         This command line option is given to the ``npm install``, ``yarn`` and
         ``npm-cache`` commands to explicitly switch between production and
-        development installations (``npm-fast-install`` is a special case
-        because the option has no effect and so instead npm-accel implements a
-        workaround).
+        development installations.
         """
         return '--production=%s' % ('true' if self.production else 'false')
 
     @mutable_property
     def read_from_cache(self):
         """:data:`True` if npm-accel is allowed to read from its cache, :data:`False` otherwise."""
-        return self.installer_name not in ('npm-cache', 'npm-fast-install')
+        return self.installer_name != 'npm-cache'
 
     @mutable_property
     def write_to_cache(self):
         """:data:`True` if npm-accel is allowed to write to its cache, :data:`False` otherwise."""
-        return self.installer_name not in ('npm-cache', 'npm-fast-install')
+        return self.installer_name != 'npm-cache'
 
     def add_to_cache(self, modules_directory, file_in_cache):
         """
@@ -239,7 +234,7 @@ class NpmAccel(PropertyManager):
 
     def benchmark(self, directory, iterations=2, reset_caches=True, silent=False):
         """
-        Benchmark ``npm install``, ``yarn``, ``npm-accel``, ``npm-cache`` and ``npm-fast-install``.
+        Benchmark ``npm install``, ``yarn``, ``npm-accel`` and ``npm-cache``.
 
         :param directory: The pathname of a directory with a ``package.json`` file (a string).
         :param iterations: The number of times to run each installation command.
@@ -254,13 +249,11 @@ class NpmAccel(PropertyManager):
         for name, label in (('npm', 'npm install'),
                             ('yarn', 'yarn'),
                             ('npm-accel', 'npm-accel'),
-                            ('npm-cache', 'npm-cache install npm'),
-                            ('npm-fast-install', 'npm-fast-install')):
+                            ('npm-cache', 'npm-cache install npm')):
             # Reset all caches before the first run of each installer?
             if reset_caches:
-                self.clear_directory('~/.npm')
-                self.clear_directory('~/.npm-fast-install')
                 self.clear_directory('~/.cache/yarn')
+                self.clear_directory('~/.npm')
                 self.clear_directory('~/.package_cache')  # npm-cache
                 self.clear_directory(self.cache_directory)
                 self.clear_directory(os.path.join(directory, 'node_modules'))
@@ -475,22 +468,6 @@ class NpmAccel(PropertyManager):
         self.write_metadata(file_in_cache)
         logger.verbose("Took %s to install from cache.", timer)
 
-    def install_with_yarn(self, directory, silent=False):
-        """
-        Use yarn_ to install dependencies.
-
-        :param directory: The pathname of a directory with a ``package.json`` file (a string).
-        :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
-        :raises: Any exceptions raised by the :mod:`executor.contexts` module.
-
-        .. _yarn: https://www.npmjs.com/package/yarn
-        """
-        timer = Timer()
-        install_command = ['yarn', self.production_option]
-        logger.info("Running command: %s", quote(install_command))
-        self.context.execute(*install_command, directory=directory, silent=silent)
-        logger.verbose("Took %s to install with yarn.", timer)
-
     def install_with_npm(self, directory, silent=False):
         """
         Use `npm install`_ to install dependencies.
@@ -534,47 +511,21 @@ class NpmAccel(PropertyManager):
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with npm-cache.", timer)
 
-    def install_with_npm_fast_install(self, directory, silent=False):
+    def install_with_yarn(self, directory, silent=False):
         """
-        Use npm-fast-install_ to install dependencies.
+        Use yarn_ to install dependencies.
 
         :param directory: The pathname of a directory with a ``package.json`` file (a string).
         :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
         :raises: Any exceptions raised by the :mod:`executor.contexts` module.
 
-        .. warning:: When I tried out npm-fast-install_ for the first time I
-                     found out that ``npm-fast-install --all`` fails to
-                     actually install the devDependencies_. For more details
-                     please refer to `npm-fast-install pull request 3`_.
-                     Because this bug prevented me from evaluating how fast
-                     npm-fast-install_ was I implemented a workaround that
-                     temporarily rewrites the ``package.json`` file by merging
-                     devDependencies_ into dependencies_. This approach has the
-                     potential to corrupt the contents of ``package.json`` if
-                     the process of restoring the original contents is
-                     interrupted (e.g. when you abort npm-accel by pressing
-                     Control-C and keeping it pressed for a while).
-
-        .. _npm-fast-install: https://www.npmjs.com/package/npm-fast-install
-        .. _npm-fast-install pull request 3: https://github.com/appcelerator/npm-fast-install/pull/3
+        .. _yarn: https://www.npmjs.com/package/yarn
         """
         timer = Timer()
-        program_name = 'npm-fast-install'
-        package_file = os.path.join(directory, 'package.json')
-        metadata = dict(dependencies={}, devDependencies={})
-        metadata.update(json.loads(auto_decode(self.context.read_file(package_file))))
-        need_patch = metadata['devDependencies'] and not self.production
-        # Temporarily change the contents of the package.json file?
-        if need_patch:
-            logger.verbose("Temporarily patching %s ..", format_path(package_file))
-            patched_data = copy.deepcopy(metadata)
-            patched_data['dependencies'].update(patched_data['devDependencies'])
-            patched_data.pop('devDependencies')
-            self.context.write_file(package_file, json.dumps(patched_data).encode('UTF-8'))
-        # Run the npm-fast-install command.
-        logger.info("Running command: %s", quote(program_name))
-        self.context.execute(program_name, directory=directory, silent=silent)
-        logger.verbose("Took %s to install with npm-fast-install.", timer)
+        install_command = ['yarn', self.production_option]
+        logger.info("Running command: %s", quote(install_command))
+        self.context.execute(*install_command, directory=directory, silent=silent)
+        logger.verbose("Took %s to install with yarn.", timer)
 
     @contextlib.contextmanager
     def preserve_contents(self, filename):

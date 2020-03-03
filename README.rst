@@ -85,14 +85,14 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
 
 
    "``-p``, ``--production``","Don't install modules listed in ""devDependencies""."
-   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm"", ""yarn"",
-   ""npm-cache"" and ""npm-fast-install"". When yarn is available it will be
-   selected as the default installer, otherwise the default is npm."
+   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm"", ""yarn"", and
+   ""npm-cache"". When yarn is available it will be selected as the default
+   installer, otherwise the default is npm."
    "``-u``, ``--update``","Don't read from the cache but do write to the cache. If you suspect a cache
    entry to be corrupt you can use ``--update`` to 'refresh' the cache entry."
    "``-n``, ``--no-cache``","Disallow writing to the cache managed by npm-accel (reading is still
    allowed though). This option does not disable internal caching
-   performed by npm, yarn, npm-cache and npm-fast-install."
+   performed by npm, yarn and npm-cache."
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
    "``-l``, ``--cache-limit=COUNT``","Set the maximum number of tar archives to preserve. When the cache
    directory contains more than ``COUNT`` archives the least recently used
@@ -103,16 +103,14 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
    2. yarn
    3. npm-accel
    4. npm-cache
-   5. npm-fast-install
    
    The first method performs no caching (except for the HTTP caching that's
    native to npm) while the other four methods each manage their own cache
-   (that is to say, the caching logic of npm-accel will only be used in the
-   second method).
+   (that is to say, the caching logic of npm-accel is only used in step 3).
    
-   Warning: Benchmarking wipes the caches managed by npm, yarn, npm-accel,
-   npm-cache and npm-fast-install in order to provide a fair comparison
-   (you can override this in the Python API but not on the command line)."
+   Warning: Benchmarking wipes the caches managed by npm, yarn, npm-accel and
+   npm-cache in order to provide a fair comparison (you can override this in
+   the Python API but not on the command line)."
    "``-r``, ``--remote-host=SSH_ALIAS``","Operate on a remote system instead of the local system. The
    ``SSH_ALIAS`` argument gives the SSH alias of the remote host."
    "``-v``, ``--verbose``",Increase logging verbosity (can be repeated).
@@ -165,17 +163,15 @@ npm-accel                     1 of 2                28.22 seconds      66.45%
 npm-accel                     2 of 2                  1.79 second       4.22%
 npm-cache install npm         1 of 2    1 minute and 2.88 seconds     148.06%
 npm-cache install npm         2 of 2                15.87 seconds      37.35%
-npm-fast-install              1 of 2  9 minutes and 35.35 seconds    1354.62%
-npm-fast-install (failed)     2 of 2                           \-          \-
 =========================  =========  ===========================  ==========
 
 Some notes about this benchmark:
 
-- Each of the five installation methods (npm, yarn, npm-accel, npm-cache and
-  npm-fast-install) is run twice. The first run starts with empty cache
-  directories and is intended to "prime the cache". The second run is intended
-  to actually use the cache and should be able to do so quite effectively,
-  given that the package.json file does not change between the two runs.
+- Each of the installation methods is run twice. The first run starts with
+  empty cache directories and is intended to "prime the cache". The second run
+  is intended to actually use the cache and should be able to do so quite
+  effectively, given that the package.json file does not change between the two
+  runs.
 
 - During the benchmark, the caching performed by npm-accel is only used in the
   sixth row of the table above. This is because the original point of the
@@ -234,7 +230,6 @@ This software is licensed under the `MIT license`_.
 .. _Node.js: https://nodejs.org/en/
 .. _node_modules: https://docs.npmjs.com/getting-started/installing-npm-packages-locally#installing
 .. _npm-cache: https://www.npmjs.com/package/npm-cache
-.. _npm-fast-install: https://www.npmjs.com/package/npm-fast-install
 .. _npm: https://www.npmjs.com/
 .. _package.json: https://docs.npmjs.com/files/package.json
 .. _per user site-packages directory: https://www.python.org/dev/peps/pep-0370/

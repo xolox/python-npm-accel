@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 28, 2017
+# Last Change: March 3, 2020
 # URL: https://github.com/xolox/python-npm-accel
 
 """Test suite for the `npm-accel` package."""
@@ -111,15 +111,12 @@ class NpmAccelTestCase(TestCase):
         # Make sure 'npm-cache' is supported.
         accelerator.installer_name = 'npm-cache'
         assert accelerator.installer_method == accelerator.install_with_npm_cache
-        # Make sure 'npm-fast-install' is supported.
-        accelerator.installer_name = 'npm-fast-install'
-        assert accelerator.installer_method == accelerator.install_with_npm_fast_install
         # Make sure invalid installer names raise an error.
         self.assertRaises(ValueError, setattr, accelerator, 'installer_name', 'bogus')
 
     def test_installers(self):
         """Make sure all of the supported installers actually work!"""
-        for installer_name in 'npm', 'yarn', 'npm-cache', 'npm-fast-install':
+        for installer_name in 'npm', 'yarn', 'npm-cache':
             with TemporaryDirectory() as cache_directory:
                 with TemporaryDirectory() as project_directory:
                     write_package_metadata(project_directory, dict(npm='3.10.6'))
@@ -214,18 +211,6 @@ class NpmAccelTestCase(TestCase):
             accelerator.clean_cache()
             # Make sure the number of cache entries decreased.
             assert len(list(accelerator.find_archives())) == accelerator.cache_limit
-
-    def test_npm_fast_install_workaround(self):
-        """Test that ``npm-fast-install`` installs ``devDependencies`` (due to the workaround in npm-accel)."""
-        with TemporaryDirectory() as cache_directory:
-            accelerator = NpmAccel(context=create_context(),
-                                   cache_directory=cache_directory,
-                                   installer_name='npm-fast-install',
-                                   production=False)
-            with TemporaryDirectory() as project_directory:
-                write_package_metadata(project_directory, devDependencies=dict(npm='3.10.6'))
-                accelerator.install(project_directory)
-                self.check_program(project_directory, 'npm', 'help')
 
     def test_benchmark(self):
         """Make sure the benchmark finishes successfully."""
