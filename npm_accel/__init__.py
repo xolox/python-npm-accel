@@ -107,14 +107,13 @@ class NpmAccel(PropertyManager):
     @mutable_property(cached=True)
     def installer_name(self):
         """
-        The name of the installer to use (one of the strings 'npm', 'yarn', 'npm-cache' or 'npm-fast-install').
+        The name of the installer to use (one of the strings in :data:`KNOWN_INSTALLERS`).
 
-        The default value of :attr:`installer_name` is
-        :attr:`default_installer`. When you try to set :attr:`installer_name`
-        to a name that is not part of :data:`KNOWN_INSTALLERS` a
-        :exc:`~exceptions.ValueError` exception will be raised. When you try to
-        set :attr:`installer_name` to the name of an installer that is not
-        available a warning message will be logged and
+        The default value of :attr:`installer_name` is :attr:`default_installer`.
+        When you try to set :attr:`installer_name` to a name that is not included
+        in :data:`KNOWN_INSTALLERS` a :exc:`~exceptions.ValueError` exception will
+        be raised. When you try to set :attr:`installer_name` to the name of an
+        installer that is not available a warning message will be logged and
         :attr:`default_installer` is used instead.
         """
         return self.default_installer
