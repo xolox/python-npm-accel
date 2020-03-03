@@ -127,7 +127,7 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
 Status
 ------
 
-The npm-accel project was developed and published in September '16 because I
+The npm-accel project was developed and published in September 2016 because I
 got fed up waiting for ``npm install`` to finish, specifically in the context
 of continuous integration builds and deployments (where you frequently start
 with an empty ``node_modules`` directory). It was developed in about a week
@@ -138,16 +138,10 @@ The project was initially published with 95% test coverage and I was careful
 not to repeat the bugs I encountered in npm-cache_ and npm-fast-install_ while
 evaluating those tools 🙂.
 
-At the time of writing (June '17) npm-accel has been in active use at my
-employer for about nine months. During that time our builds have become bigger
-and slower and so I wanted npm-accel to be even faster 🙂. To this end I've
-removed the use of ``npm prune`` and integrated support for yarn_ (it will be
-used automatically in preference over npm_ when it is installed).
-
-To summarize: Give it a try, see if it actually speeds up your ``npm install``
-use case and then decide whether you want to use it or not. The current release
-of npm-accel is labeled as a `beta release`_ because of the recent refactoring
-that removed ``npm prune``, integrated yarn and cleaned up the code base.
+At the time of writing (early 2020) npm-accel has been in active use at my
+employer for more than three years and it has worked wonderfully well to speed
+up our continuous integration builds and deployments. But don't take my word
+for it, try it out and see if it helps your use case!
 
 Performance
 -----------

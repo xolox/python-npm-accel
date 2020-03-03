@@ -11,6 +11,37 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 2.0`_ (2020-03-03)
+---------------------------
+
+**Significant changes:**
+
+- Update Python compatibility: Added 3.7 and 3.8, removed 3.4.
+
+- Add support for the ``$NPM_ACCEL_CACHE_LIMIT`` environment variable.
+
+- Add support for pnpm_ (it has piqued my interest) and remove support for
+  npm-fast-install_ (it was never worth my time).
+
+- Change cache key computation to include version of installer that's actually used
+  instead of npm version (bug fix).
+
+- Change development status in ``setup.py`` script from beta to stable.
+
+**Miscellaneous changes:**
+
+- Include documentation in source distributions.
+- Switch from node_4.x to node_10.x on Travis CI.
+- Add this changelog, restructure the documentation.
+- Include ``license=MIT`` key in ``setup.py`` script.
+- Change ``Makefile`` to use Python 3 for local development.
+- Upgrade to :pypi:`humanfriendly` 8.0 (fix deprecated imports).
+- Integrate :pypi:`pytest-rerunfailures` because MacOS workers on Travis CI are slow 😝.
+
+.. _Release 2.0: https://github.com/xolox/python-npm-accel/compare/1.0...2.0
+.. _npm-fast-install: https://www.npmjs.com/package/npm-fast-install
+.. _pnpm: https://www.npmjs.com/package/pnpm
+
 `Release 1.0`_ (2017-06-29)
 ---------------------------
 
