@@ -149,32 +149,33 @@ Performance
 -----------
 
 The following table lists the output of ``npm-accel --benchmark`` against a
-private code base with 58 dependencies listed in the package.json file
-(resulting in a 357 MB node_modules directory):
+private code base with 128 dependencies listed in the package.json file
+(resulting in a 895 MiB node_modules directory):
 
-=========================  =========  ===========================  ==========
-Approach                   Iteration  Elapsed time                 Percentage
-=========================  =========  ===========================  ==========
-npm install                   1 of 2                42.47 seconds     100.00%
-npm install                   2 of 2                27.92 seconds      65.73%
-yarn                          1 of 2                33.32 seconds      78.45%
-yarn                          2 of 2                17.66 seconds      41.59%
-npm-accel                     1 of 2                28.22 seconds      66.45%
-npm-accel                     2 of 2                  1.79 second       4.22%
-npm-cache install npm         1 of 2    1 minute and 2.88 seconds     148.06%
-npm-cache install npm         2 of 2                15.87 seconds      37.35%
-=========================  =========  ===========================  ==========
+===========  =========  ===========================  ==========
+Approach     Iteration  Elapsed time                 Percentage
+===========  =========  ===========================  ==========
+npm install  1 of 2     1 minute and 16.56 seconds         100%
+npm install  2 of 2     1 minute and 4.99 seconds           85%
+yarn         1 of 2     1 minute and 6.33 seconds           87%
+yarn         2 of 2     41.7 seconds                        54%
+pnpm         1 of 2     55.24 seconds                       72%
+pnpm         2 of 2     41.28 seconds                       54%
+npm-accel    1 of 2     1 minute and 12.1 seconds           94%
+npm-accel    2 of 2     3.25 seconds                         4%
+npm-cache    1 of 2     2 minutes and 14.41 seconds        176%
+npm-cache    2 of 2     22.51 seconds                       29%
+===========  =========  ===========================  ==========
 
 Some notes about this benchmark:
 
 - Each of the installation methods is run twice. The first run starts with
   empty cache directories and is intended to "prime the cache". The second run
-  is intended to actually use the cache and should be able to do so quite
-  effectively, given that the package.json file does not change between the two
-  runs.
+  is intended to use the cache and should be able to do so quite effectively,
+  given that the package.json file does not change between the two runs.
 
 - During the benchmark, the caching performed by npm-accel is only used in the
-  sixth row of the table above. This is because the original point of the
+  eight row of the table above. This is because the original point of the
   benchmark (for me) was to find out whether it was even worth it to develop
   and publish npm-accel. That is to say, if it wouldn't have given a speed
   improvement it wasn't worth my time, nor yours 😛.
