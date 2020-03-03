@@ -22,7 +22,14 @@ from humanfriendly import Timer, format_path, parse_path
 from humanfriendly.tables import format_pretty_table
 from humanfriendly.terminal import ansi_wrap, terminal_supports_colors
 from humanfriendly.text import concatenate, pluralize
-from property_manager import PropertyManager, cached_property, mutable_property, required_property, set_property
+from property_manager import (
+    PropertyManager,
+    cached_property,
+    clear_property,
+    mutable_property,
+    required_property,
+    set_property,
+)
 from verboselogs import VerboseLogger
 
 # Modules included in our package.
@@ -138,6 +145,12 @@ class NpmAccel(PropertyManager):
             )
             value = self.default_installer
         set_property(self, "installer_name", value)
+        clear_property(self, "installer_version")
+
+    @cached_property
+    def installer_version(self):
+        """The installer version according to the ``${installer_name} --version`` command (a string)."""
+        return self.context.capture(self.installer_name, "--version")
 
     @cached_property
     def nodejs_interpreter(self):
@@ -177,11 +190,6 @@ class NpmAccel(PropertyManager):
                  expected programs is available.
         """
         return self.context.capture(self.nodejs_interpreter, "--version")
-
-    @cached_property
-    def npm_version(self):
-        """The output of the ``npm --version`` command (a string)."""
-        return self.context.capture("npm", "--version")
 
     @mutable_property
     def production(self):
@@ -404,24 +412,21 @@ class NpmAccel(PropertyManager):
                              by :func:`extract_dependencies()`.
         :returns: A 40-character hexadecimal SHA1 digest (a string).
 
-        In addition to the dependencies the values of :attr:`nodejs_version`
-        and :attr:`npm_version` are used to compute the cache key, this is to
-        make sure that upgrades to Node.js and/or npm don't cause problems.
+        In addition to the dependencies the values of :attr:`nodejs_version` and
+        :attr:`installer_version` are used to compute the cache key, this is to
+        make sure that upgrades to Node.js and the installer don't cause problems.
         """
-        # TODO With the introduction of the --installer command line option,
-        #      this method should be smarter about cache keys, more
-        #      specifically when using 'yarn' the version of 'npm' isn't
-        #      relevant, the version of yarn is!
         logger.debug(
-            "Computing cache key based on dependencies (%s), Node.js version (%s) and npm version (%s) ..",
+            "Computing cache key based on dependencies (%s), Node.js version (%s) and %s version (%s) ..",
             dependencies,
             self.nodejs_version,
-            self.npm_version,
+            self.installer_name,
+            self.installer_version,
         )
         state = hashlib.sha1()
         state.update(repr(sorted(dependencies.items())).encode("ascii"))
         state.update(self.nodejs_version.encode("ascii"))
-        state.update(self.npm_version.encode("ascii"))
+        state.update(self.installer_version.encode("ascii"))
         cache_key = state.hexdigest()
         logger.debug("Computed cache key is %s.", cache_key)
         return cache_key
