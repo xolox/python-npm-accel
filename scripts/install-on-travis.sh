@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 # On Mac OS X workers we are responsible for creating the Python virtual
 # environment, because we set `language: generic' in the Travis CI build
