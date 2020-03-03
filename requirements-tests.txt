@@ -1,5 +1,5 @@
 # Dependencies of `make test'.
 
-pytest >= 5.3.5
+pytest >= 4.6.9
 pytest-cov >= 2.8.1
 pytest-rerunfailures >= 8.0
