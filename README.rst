@@ -85,14 +85,14 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
 
 
    "``-p``, ``--production``","Don't install modules listed in ""devDependencies""."
-   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm"", ""yarn"", and
-   ""npm-cache"". When yarn is available it will be selected as the default
-   installer, otherwise the default is npm."
+   "``-i``, ``--installer=NAME``","Set the installer to use. Supported values for ``NAME`` are ""npm"", ""yarn"",
+   ""pnpm"" and ""npm-cache"". When yarn is available it will be selected as the
+   default installer, otherwise the default is npm."
    "``-u``, ``--update``","Don't read from the cache but do write to the cache. If you suspect a cache
    entry to be corrupt you can use ``--update`` to 'refresh' the cache entry."
    "``-n``, ``--no-cache``","Disallow writing to the cache managed by npm-accel (reading is still
    allowed though). This option does not disable internal caching
-   performed by npm, yarn and npm-cache."
+   performed by npm, yarn, pnpm and npm-cache."
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
    "``-l``, ``--cache-limit=COUNT``","Set the maximum number of tar archives to preserve. When the cache
    directory contains more than ``COUNT`` archives the least recently used
@@ -101,16 +101,17 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
    
    1. npm install
    2. yarn
-   3. npm-accel
-   4. npm-cache
+   3. pnpm
+   4. npm-accel
+   5. npm-cache
    
    The first method performs no caching (except for the HTTP caching that's
    native to npm) while the other four methods each manage their own cache
-   (that is to say, the caching logic of npm-accel is only used in step 3).
+   (that is to say, the caching logic of npm-accel is only used in step 4).
    
-   Warning: Benchmarking wipes the caches managed by npm, yarn, npm-accel and
-   npm-cache in order to provide a fair comparison (you can override this in
-   the Python API but not on the command line)."
+   Warning: Benchmarking wipes the caches managed by npm, yarn, pnpm,
+   npm-accel and npm-cache in order to provide a fair comparison (you
+   can override this in the Python API but not on the command line)."
    "``-r``, ``--remote-host=SSH_ALIAS``","Operate on a remote system instead of the local system. The
    ``SSH_ALIAS`` argument gives the SSH alias of the remote host."
    "``-v``, ``--verbose``",Increase logging verbosity (can be repeated).
