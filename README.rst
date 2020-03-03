@@ -232,6 +232,7 @@ This software is licensed under the `MIT license`_.
 .. _Node.js: https://nodejs.org/en/
 .. _node_modules: https://docs.npmjs.com/getting-started/installing-npm-packages-locally#installing
 .. _npm-cache: https://www.npmjs.com/package/npm-cache
+.. _npm-fast-install: https://www.npmjs.com/package/npm-fast-install
 .. _npm: https://www.npmjs.com/
 .. _package.json: https://docs.npmjs.com/files/package.json
 .. _per user site-packages directory: https://www.python.org/dev/peps/pep-0370/
