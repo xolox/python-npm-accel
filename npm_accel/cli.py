@@ -120,40 +120,53 @@ def main():
     program_opts = {}
     context_opts = {}
     directory = None
-    action = 'install'
+    action = "install"
     # Parse the command line arguments.
     try:
-        options, arguments = getopt.getopt(sys.argv[1:], 'pi:unc:l:br:vqh', [
-            'production', 'installer=', 'update', 'no-cache',
-            'cache-directory=', 'cache-limit=', 'benchmark', 'remote-host=',
-            'verbose', 'quiet', 'version', 'help',
-        ])
+        options, arguments = getopt.getopt(
+            sys.argv[1:],
+            "pi:unc:l:br:vqh",
+            [
+                "production",
+                "installer=",
+                "update",
+                "no-cache",
+                "cache-directory=",
+                "cache-limit=",
+                "benchmark",
+                "remote-host=",
+                "verbose",
+                "quiet",
+                "version",
+                "help",
+            ],
+        )
         for option, value in options:
-            if option in ('-p', '--production'):
-                program_opts['production'] = True
-            elif option in ('-i', '--installer'):
-                program_opts['installer_name'] = value
-            elif option in ('-u', '--update'):
-                program_opts['read_from_cache'] = False
-                program_opts['write_to_cache'] = True
-            elif option in ('-n', '--no-cache'):
-                program_opts['write_to_cache'] = False
-            elif option in ('-c', '--cache-directory'):
-                program_opts['cache_directory'] = parse_path(value)
-            elif option in ('-l', '--cache-limit'):
-                program_opts['cache_limit'] = int(value)
-            elif option in ('-b', '--benchmark'):
-                action = 'benchmark'
-            elif option in ('-r', '--remote-host'):
-                context_opts['ssh_alias'] = value
-            elif option in ('-v', '--verbose'):
+            if option in ("-p", "--production"):
+                program_opts["production"] = True
+            elif option in ("-i", "--installer"):
+                program_opts["installer_name"] = value
+            elif option in ("-u", "--update"):
+                program_opts["read_from_cache"] = False
+                program_opts["write_to_cache"] = True
+            elif option in ("-n", "--no-cache"):
+                program_opts["write_to_cache"] = False
+            elif option in ("-c", "--cache-directory"):
+                program_opts["cache_directory"] = parse_path(value)
+            elif option in ("-l", "--cache-limit"):
+                program_opts["cache_limit"] = int(value)
+            elif option in ("-b", "--benchmark"):
+                action = "benchmark"
+            elif option in ("-r", "--remote-host"):
+                context_opts["ssh_alias"] = value
+            elif option in ("-v", "--verbose"):
                 coloredlogs.increase_verbosity()
-            elif option in ('-q', '--quiet'):
+            elif option in ("-q", "--quiet"):
                 coloredlogs.decrease_verbosity()
-            elif option == '--version':
+            elif option == "--version":
                 output(__version__)
                 return
-            elif option in ('-h', '--help'):
+            elif option in ("-h", "--help"):
                 usage(__doc__)
                 return
             else:
@@ -163,7 +176,7 @@ def main():
             if arguments:
                 raise Exception("Got more positional arguments than expected!")
         if not directory:
-            if context_opts.get('ssh_alias'):
+            if context_opts.get("ssh_alias"):
                 raise Exception("When operating on a remote system the directory needs to be specified explicitly!")
             directory = os.getcwd()
     except Exception as e:
@@ -172,7 +185,7 @@ def main():
     # Perform the requested action(s).
     try:
         context = create_context(**context_opts)
-        program_opts['context'] = context
+        program_opts["context"] = context
         accelerator = NpmAccel(**program_opts)
         method = getattr(accelerator, action)
         method(directory)

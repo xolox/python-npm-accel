@@ -28,11 +28,11 @@ from verboselogs import VerboseLogger
 # Modules included in our package.
 from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreterError
 
-KNOWN_INSTALLERS = ('npm', 'yarn', 'pnpm', 'npm-cache')
+KNOWN_INSTALLERS = ("npm", "yarn", "pnpm", "npm-cache")
 """A tuple of strings with the names of supported Node.js installers."""
 
 # Semi-standard module versioning.
-__version__ = '1.0'
+__version__ = "1.0"
 
 # Initialize a logger for this program.
 logger = VerboseLogger(__name__)
@@ -55,9 +55,11 @@ class NpmAccel(PropertyManager):
     @mutable_property(cached=True)
     def cache_directory(self):
         """The absolute pathname of the directory where ``node_modules`` directories are cached (a string)."""
-        return ('/var/cache/npm-accel'
-                if os.getuid() == 0 and os.access('/var/cache', os.W_OK)
-                else parse_path('~/.cache/npm-accel'))
+        return (
+            "/var/cache/npm-accel"
+            if os.getuid() == 0 and os.access("/var/cache", os.W_OK)
+            else parse_path("~/.cache/npm-accel")
+        )
 
     @mutable_property
     def cache_limit(self):
@@ -67,7 +69,7 @@ class NpmAccel(PropertyManager):
         The environment variable ``$NPM_ACCEL_CACHE_LIMIT`` can be used to override the
         default value of this option.
         """
-        return int(os.environ.get('NPM_ACCEL_CACHE_LIMIT', '20'))
+        return int(os.environ.get("NPM_ACCEL_CACHE_LIMIT", "20"))
 
     @required_property
     def context(self):
@@ -82,12 +84,12 @@ class NpmAccel(PropertyManager):
         :attr:`default_installer` will be 'yarn', otherwise it falls back to
         'npm'.
         """
-        if self.context.find_program('yarn'):
+        if self.context.find_program("yarn"):
             logger.verbose("Selecting 'yarn' as default installer.")
-            return 'yarn'
+            return "yarn"
         else:
             logger.verbose("Selecting 'npm' as default installer ('yarn' isn't installed).")
-            return 'npm'
+            return "npm"
 
     @property
     def installer_method(self):
@@ -97,13 +99,13 @@ class NpmAccel(PropertyManager):
         :raises: :exc:`~exceptions.ValueError` if the value of
                  :attr:`installer_name` is not supported.
         """
-        if self.installer_name == 'npm':
+        if self.installer_name == "npm":
             return self.install_with_npm
-        elif self.installer_name == 'yarn':
+        elif self.installer_name == "yarn":
             return self.install_with_yarn
-        elif self.installer_name == 'pnpm':
+        elif self.installer_name == "pnpm":
             return self.install_with_pnpm
-        elif self.installer_name == 'npm-cache':
+        elif self.installer_name == "npm-cache":
             return self.install_with_npm_cache
         else:
             raise ValueError("The requested installer is not supported! (%r)" % self.installer_name)
@@ -131,10 +133,11 @@ class NpmAccel(PropertyManager):
         if self.context.find_program(value):
             logger.verbose("Selecting user defined installer %r (confirmed to be installed).", value)
         else:
-            logger.warning("User defined installer %r isn't available, falling back to %s.",
-                           value, self.default_installer)
+            logger.warning(
+                "User defined installer %r isn't available, falling back to %s.", value, self.default_installer
+            )
             value = self.default_installer
-        set_property(self, 'installer_name', value)
+        set_property(self, "installer_name", value)
 
     @cached_property
     def nodejs_interpreter(self):
@@ -157,7 +160,7 @@ class NpmAccel(PropertyManager):
         .. _ax25-node: https://packages.debian.org/ax25-node
         """
         logger.debug("Discovering name of Node.js interpreter ..")
-        for interpreter in 'nodejs', 'node':
+        for interpreter in "nodejs", "node":
             logger.debug("Checking availability of program: %s", interpreter)
             matches = self.context.find_program(interpreter)
             if matches:
@@ -173,12 +176,12 @@ class NpmAccel(PropertyManager):
         :raises: :exc:`.MissingNodeInterpreterError` when neither of the
                  expected programs is available.
         """
-        return self.context.capture(self.nodejs_interpreter, '--version')
+        return self.context.capture(self.nodejs_interpreter, "--version")
 
     @cached_property
     def npm_version(self):
         """The output of the ``npm --version`` command (a string)."""
-        return self.context.capture('npm', '--version')
+        return self.context.capture("npm", "--version")
 
     @mutable_property
     def production(self):
@@ -191,7 +194,7 @@ class NpmAccel(PropertyManager):
 
         .. _devDependencies: https://docs.npmjs.com/files/package.json#devdependencies
         """
-        return os.environ.get('NODE_ENV') == 'production'
+        return os.environ.get("NODE_ENV") == "production"
 
     @property
     def production_option(self):
@@ -202,17 +205,17 @@ class NpmAccel(PropertyManager):
         ``npm-cache`` commands to explicitly switch between production and development
         installations.
         """
-        return '--production=%s' % ('true' if self.production else 'false')
+        return "--production=%s" % ("true" if self.production else "false")
 
     @mutable_property
     def read_from_cache(self):
         """:data:`True` if npm-accel is allowed to read from its cache, :data:`False` otherwise."""
-        return self.installer_name != 'npm-cache'
+        return self.installer_name != "npm-cache"
 
     @mutable_property
     def write_to_cache(self):
         """:data:`True` if npm-accel is allowed to write to its cache, :data:`False` otherwise."""
-        return self.installer_name != 'npm-cache'
+        return self.installer_name != "npm-cache"
 
     def add_to_cache(self, modules_directory, file_in_cache):
         """
@@ -233,9 +236,9 @@ class NpmAccel(PropertyManager):
         """
         timer = Timer()
         logger.info("Adding to cache (%s) ..", format_path(file_in_cache))
-        self.context.execute('mkdir', '-p', os.path.dirname(file_in_cache))
+        self.context.execute("mkdir", "-p", os.path.dirname(file_in_cache))
         with self.context.atomic_write(file_in_cache) as temporary_file:
-            self.context.execute('tar', '-cf', temporary_file, '-C', modules_directory, '.')
+            self.context.execute("tar", "-cf", temporary_file, "-C", modules_directory, ".")
         self.write_metadata(file_in_cache)
         logger.verbose("Took %s to add directory to cache.", timer)
 
@@ -253,26 +256,28 @@ class NpmAccel(PropertyManager):
         """
         results = []
         baseline = None
-        for name, label in (('npm', 'npm install'),
-                            ('yarn', 'yarn'),
-                            ('pnpm', 'pnpm install'),
-                            ('npm-accel', 'npm-accel'),
-                            ('npm-cache', 'npm-cache install npm')):
+        for name, label in (
+            ("npm", "npm install"),
+            ("yarn", "yarn"),
+            ("pnpm", "pnpm install"),
+            ("npm-accel", "npm-accel"),
+            ("npm-cache", "npm-cache install npm"),
+        ):
             # Reset all caches before the first run of each installer?
             if reset_caches:
-                self.clear_directory('~/.cache/yarn')
-                self.clear_directory('~/.npm')
-                self.clear_directory('~/.package_cache')  # npm-cache
-                self.clear_directory('~/.pnpm-store')
+                self.clear_directory("~/.cache/yarn")
+                self.clear_directory("~/.npm")
+                self.clear_directory("~/.package_cache")  # npm-cache
+                self.clear_directory("~/.pnpm-store")
                 self.clear_directory(self.cache_directory)
-                self.clear_directory(os.path.join(directory, 'node_modules'))
+                self.clear_directory(os.path.join(directory, "node_modules"))
             # Run the test twice, the first time to prime the cache
             # and the second time to actually use the cache.
             for i in range(1, iterations + 1):
                 iteration_label = "%i of %i" % (i, iterations)
                 logger.info("Testing '%s' (%s) ..", label, iteration_label)
                 timer = Timer()
-                if name == 'npm-accel':
+                if name == "npm-accel":
                     self.installer_name = self.default_installer
                     self.read_from_cache = True
                     self.write_to_cache = True
@@ -285,16 +290,16 @@ class NpmAccel(PropertyManager):
                 except ExternalCommandFailed:
                     label += " (failed)"
                     if terminal_supports_colors():
-                        label = ansi_wrap(label, color='red')
-                    results.append((label, iteration_label, str(timer), '-'))
+                        label = ansi_wrap(label, color="red")
+                    results.append((label, iteration_label, str(timer), "-"))
                     # We skip the second iteration on failure.
                     break
                 else:
                     if baseline is None:
                         baseline = timer.elapsed_time
-                        percentage = '100%'
+                        percentage = "100%"
                     else:
-                        percentage = '%.2f%%' % (timer.elapsed_time / (baseline / 100.0))
+                        percentage = "%.2f%%" % (timer.elapsed_time / (baseline / 100.0))
                     results.append((label, iteration_label, str(timer), percentage))
                 logger.info("Took %s for '%s' (%s).", timer, label, iteration_label)
         print(format_pretty_table(results, column_names=["Approach", "Iteration", "Elapsed time", "Percentage"]))
@@ -305,16 +310,15 @@ class NpmAccel(PropertyManager):
         entries = []
         for file_in_cache in self.find_archives():
             cache_metadata = self.read_metadata(file_in_cache)
-            last_accessed = cache_metadata.get('last-accessed', 0)
+            last_accessed = cache_metadata.get("last-accessed", 0)
             entries.append((last_accessed, file_in_cache))
-        to_remove = sorted(entries)[:-self.cache_limit]
+        to_remove = sorted(entries)[: -self.cache_limit]
         if to_remove:
             for last_used, file_in_cache in to_remove:
                 logger.debug("Removing archive from cache: %s", format_path(file_in_cache))
                 metadata_file = self.get_metadata_file(file_in_cache)
-                self.context.execute('rm', '-f', file_in_cache, metadata_file)
-            logger.verbose("Took %s to remove %s from cache.",
-                           timer, pluralize(len(to_remove), "archive"))
+                self.context.execute("rm", "-f", file_in_cache, metadata_file)
+            logger.verbose("Took %s to remove %s from cache.", timer, pluralize(len(to_remove), "archive"))
         else:
             logger.verbose("Wasted %s checking whether cache needs to be cleaned (it doesn't).", timer)
 
@@ -335,10 +339,10 @@ class NpmAccel(PropertyManager):
         formatted_directory = format_path(parsed_directory)
         if self.context.is_directory(parsed_directory):
             logger.verbose("Clearing directory contents (%s) ..", formatted_directory)
-            self.context.execute('rm', '-fr', parsed_directory)
+            self.context.execute("rm", "-fr", parsed_directory)
         else:
             logger.verbose("Creating directory (%s) ..", formatted_directory)
-        self.context.execute('mkdir', '-p', parsed_directory)
+        self.context.execute("mkdir", "-p", parsed_directory)
 
     def extract_dependencies(self, package_file):
         """
@@ -359,12 +363,13 @@ class NpmAccel(PropertyManager):
             raise MissingPackageFileError(msg)
         contents = self.context.read_file(package_file)
         metadata = json.loads(auto_decode(contents))
-        dependencies = metadata.get('dependencies', {})
+        dependencies = metadata.get("dependencies", {})
         if not self.production:
-            dependencies.update(metadata.get('devDependencies', {}))
+            dependencies.update(metadata.get("devDependencies", {}))
         if dependencies:
-            logger.verbose("Extracted %s from package.json file.",
-                           pluralize(len(dependencies), "dependency", "dependencies"))
+            logger.verbose(
+                "Extracted %s from package.json file.", pluralize(len(dependencies), "dependency", "dependencies")
+            )
         else:
             logger.warning("No dependencies extracted from %s file?!", formatted_path)
         return dependencies
@@ -375,7 +380,7 @@ class NpmAccel(PropertyManager):
 
         :returns: A generator of filenames (strings).
         """
-        pattern = re.compile(r'^[0-9A-F]{40}\.tar$', re.IGNORECASE)
+        pattern = re.compile(r"^[0-9A-F]{40}\.tar$", re.IGNORECASE)
         for entry in self.context.list_entries(self.cache_directory):
             if pattern.match(entry):
                 yield os.path.join(self.cache_directory, entry)
@@ -388,7 +393,7 @@ class NpmAccel(PropertyManager):
                              by :func:`extract_dependencies()`.
         :returns: The absolute pathname of the file in the cache (a string).
         """
-        filename = '%s.tar' % self.get_cache_key(dependencies)
+        filename = "%s.tar" % self.get_cache_key(dependencies)
         return os.path.join(self.cache_directory, filename)
 
     def get_cache_key(self, dependencies):
@@ -403,12 +408,20 @@ class NpmAccel(PropertyManager):
         and :attr:`npm_version` are used to compute the cache key, this is to
         make sure that upgrades to Node.js and/or npm don't cause problems.
         """
-        logger.debug("Computing cache key based on dependencies (%s), Node.js version (%s) and npm version (%s) ..",
-                     dependencies, self.nodejs_version, self.npm_version)
+        # TODO With the introduction of the --installer command line option,
+        #      this method should be smarter about cache keys, more
+        #      specifically when using 'yarn' the version of 'npm' isn't
+        #      relevant, the version of yarn is!
+        logger.debug(
+            "Computing cache key based on dependencies (%s), Node.js version (%s) and npm version (%s) ..",
+            dependencies,
+            self.nodejs_version,
+            self.npm_version,
+        )
         state = hashlib.sha1()
-        state.update(repr(sorted(dependencies.items())).encode('ascii'))
-        state.update(self.nodejs_version.encode('ascii'))
-        state.update(self.npm_version.encode('ascii'))
+        state.update(repr(sorted(dependencies.items())).encode("ascii"))
+        state.update(self.nodejs_version.encode("ascii"))
+        state.update(self.npm_version.encode("ascii"))
         cache_key = state.hexdigest()
         logger.debug("Computed cache key is %s.", cache_key)
         return cache_key
@@ -420,7 +433,7 @@ class NpmAccel(PropertyManager):
         :param file_in_cache: The pathname of the archive in the cache (a string).
         :returns: The absolute pathname of the metadata file (a string).
         """
-        return re.sub(r'\.tar$', '.json', file_in_cache)
+        return re.sub(r"\.tar$", ".json", file_in_cache)
 
     def install(self, directory, silent=False):
         """
@@ -431,8 +444,8 @@ class NpmAccel(PropertyManager):
         :returns: The result of :func:`extract_dependencies()`.
         """
         timer = Timer()
-        package_file = os.path.join(directory, 'package.json')
-        modules_directory = os.path.join(directory, 'node_modules')
+        package_file = os.path.join(directory, "package.json")
+        modules_directory = os.path.join(directory, "node_modules")
         dependencies = self.extract_dependencies(package_file)
         logger.info("Installing Node.js packages in %s ..", format_path(directory))
         if dependencies:
@@ -441,17 +454,23 @@ class NpmAccel(PropertyManager):
                 logger.verbose("Checking the cache (%s) ..", format_path(file_in_cache))
             if self.read_from_cache and self.context.is_file(file_in_cache):
                 self.install_from_cache(file_in_cache, modules_directory)
-                logger.info("Done! Took %s to install %s from cache.",
-                            timer, pluralize(len(dependencies), "dependency", "dependencies"))
+                logger.info(
+                    "Done! Took %s to install %s from cache.",
+                    timer,
+                    pluralize(len(dependencies), "dependency", "dependencies"),
+                )
             else:
                 self.clear_directory(modules_directory)
                 with self.preserve_contents(package_file):
                     self.installer_method(directory, silent=silent)
                 if self.write_to_cache:
                     self.add_to_cache(modules_directory, file_in_cache)
-                logger.info("Done! Took %s to install %s using %s.", timer,
-                            pluralize(len(dependencies), "dependency", "dependencies"),
-                            self.installer_name)
+                logger.info(
+                    "Done! Took %s to install %s using %s.",
+                    timer,
+                    pluralize(len(dependencies), "dependency", "dependencies"),
+                    self.installer_name,
+                )
             self.clean_cache()
         else:
             logger.info("Nothing to do! (no dependencies to install)")
@@ -473,7 +492,7 @@ class NpmAccel(PropertyManager):
         logger.info("Installing from cache (%s)..", formatted_path)
         self.clear_directory(modules_directory)
         logger.verbose("Unpacking archive (%s) ..", formatted_path)
-        self.context.execute('tar', '-xf', file_in_cache, '-C', modules_directory)
+        self.context.execute("tar", "-xf", file_in_cache, "-C", modules_directory)
         self.write_metadata(file_in_cache)
         logger.verbose("Took %s to install from cache.", timer)
 
@@ -488,7 +507,7 @@ class NpmAccel(PropertyManager):
         .. _npm install: https://docs.npmjs.com/cli/install
         """
         timer = Timer()
-        install_command = ['npm', 'install', self.production_option]
+        install_command = ["npm", "install", self.production_option]
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with npm.", timer)
@@ -515,7 +534,7 @@ class NpmAccel(PropertyManager):
         .. _npm-cache issue 74: https://github.com/swarajban/npm-cache/issues/74
         """
         timer = Timer()
-        install_command = ['npm-cache', 'install', 'npm', self.production_option]
+        install_command = ["npm-cache", "install", "npm", self.production_option]
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with npm-cache.", timer)
@@ -531,7 +550,7 @@ class NpmAccel(PropertyManager):
         .. _pnpm: https://www.npmjs.com/package/pnpm
         """
         timer = Timer()
-        install_command = ['pnpm', 'install', self.production_option]
+        install_command = ["pnpm", "install", self.production_option]
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with pnpm.", timer)
@@ -547,7 +566,7 @@ class NpmAccel(PropertyManager):
         .. _yarn: https://www.npmjs.com/package/yarn
         """
         timer = Timer()
-        install_command = ['yarn', self.production_option]
+        install_command = ["yarn", self.production_option]
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with yarn.", timer)
@@ -588,16 +607,16 @@ class NpmAccel(PropertyManager):
         """
         metadata_file = self.get_metadata_file(file_in_cache)
         cache_metadata = self.read_metadata(file_in_cache)
-        logger.verbose("%s metadata file (%s) ..",
-                       "Updating" if cache_metadata else "Creating",
-                       format_path(metadata_file))
+        logger.verbose(
+            "%s metadata file (%s) ..", "Updating" if cache_metadata else "Creating", format_path(metadata_file)
+        )
         cache_metadata.update(overrides)
-        if 'date-created' not in cache_metadata:
-            cache_metadata['date-created'] = int(time.time())
-        cache_metadata['last-accessed'] = int(time.time())
-        cache_metadata['cache-hits'] = cache_metadata.get('cache-hits', 0) + 1
+        if "date-created" not in cache_metadata:
+            cache_metadata["date-created"] = int(time.time())
+        cache_metadata["last-accessed"] = int(time.time())
+        cache_metadata["cache-hits"] = cache_metadata.get("cache-hits", 0) + 1
         with self.context.atomic_write(metadata_file) as temporary_file:
-            self.context.write_file(temporary_file, json.dumps(cache_metadata).encode('UTF-8'))
+            self.context.write_file(temporary_file, json.dumps(cache_metadata).encode("UTF-8"))
 
 
 def auto_decode(text):
@@ -608,8 +627,8 @@ def auto_decode(text):
     :returns: A Unicode string.
     """
     if text.startswith(codecs.BOM_UTF8):
-        encoding = 'utf-8-sig'
+        encoding = "utf-8-sig"
     else:
         result = detect(text)
-        encoding = result['encoding']
+        encoding = result["encoding"]
     return codecs.decode(text, encoding)

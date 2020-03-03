@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: September 17, 2016
+# Last Change: March 3, 2020
 # URL: https://github.com/xolox/python-npm-accel
 
 """Custom exceptions that are raised explicitly by npm-accel."""
