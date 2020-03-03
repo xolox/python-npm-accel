@@ -28,7 +28,7 @@ from verboselogs import VerboseLogger
 # Modules included in our package.
 from npm_accel.exceptions import MissingPackageFileError, MissingNodeInterpreterError
 
-KNOWN_INSTALLERS = ('npm', 'yarn', 'npm-cache')
+KNOWN_INSTALLERS = ('npm', 'yarn', 'pnpm', 'npm-cache')
 """A tuple of strings with the names of supported Node.js installers."""
 
 # Semi-standard module versioning.
@@ -101,6 +101,8 @@ class NpmAccel(PropertyManager):
             return self.install_with_npm
         elif self.installer_name == 'yarn':
             return self.install_with_yarn
+        elif self.installer_name == 'pnpm':
+            return self.install_with_pnpm
         elif self.installer_name == 'npm-cache':
             return self.install_with_npm_cache
         else:
@@ -196,9 +198,9 @@ class NpmAccel(PropertyManager):
         """
         One of the strings ``--production=true`` or ``--production=false`` (depending on :attr:`production`).
 
-        This command line option is given to the ``npm install``, ``yarn`` and
-        ``npm-cache`` commands to explicitly switch between production and
-        development installations.
+        This command line option is given to the ``npm install``, ``yarn``, ``pnpm`` and
+        ``npm-cache`` commands to explicitly switch between production and development
+        installations.
         """
         return '--production=%s' % ('true' if self.production else 'false')
 
@@ -239,7 +241,7 @@ class NpmAccel(PropertyManager):
 
     def benchmark(self, directory, iterations=2, reset_caches=True, silent=False):
         """
-        Benchmark ``npm install``, ``yarn``, ``npm-accel`` and ``npm-cache``.
+        Benchmark ``npm install``, ``yarn``, ``pnpm``, ``npm-accel`` and ``npm-cache``.
 
         :param directory: The pathname of a directory with a ``package.json`` file (a string).
         :param iterations: The number of times to run each installation command.
@@ -253,6 +255,7 @@ class NpmAccel(PropertyManager):
         baseline = None
         for name, label in (('npm', 'npm install'),
                             ('yarn', 'yarn'),
+                            ('pnpm', 'pnpm install'),
                             ('npm-accel', 'npm-accel'),
                             ('npm-cache', 'npm-cache install npm')):
             # Reset all caches before the first run of each installer?
@@ -260,6 +263,7 @@ class NpmAccel(PropertyManager):
                 self.clear_directory('~/.cache/yarn')
                 self.clear_directory('~/.npm')
                 self.clear_directory('~/.package_cache')  # npm-cache
+                self.clear_directory('~/.pnpm-store')
                 self.clear_directory(self.cache_directory)
                 self.clear_directory(os.path.join(directory, 'node_modules'))
             # Run the test twice, the first time to prime the cache
@@ -515,6 +519,22 @@ class NpmAccel(PropertyManager):
         logger.info("Running command: %s", quote(install_command))
         self.context.execute(*install_command, directory=directory, silent=silent)
         logger.verbose("Took %s to install with npm-cache.", timer)
+
+    def install_with_pnpm(self, directory, silent=False):
+        """
+        Use pnpm_ to install dependencies.
+
+        :param directory: The pathname of a directory with a ``package.json`` file (a string).
+        :param silent: Used to set :attr:`~executor.ExternalCommand.silent`.
+        :raises: Any exceptions raised by the :mod:`executor.contexts` module.
+
+        .. _pnpm: https://www.npmjs.com/package/pnpm
+        """
+        timer = Timer()
+        install_command = ['pnpm', 'install', self.production_option]
+        logger.info("Running command: %s", quote(install_command))
+        self.context.execute(*install_command, directory=directory, silent=silent)
+        logger.verbose("Took %s to install with pnpm.", timer)
 
     def install_with_yarn(self, directory, silent=False):
         """

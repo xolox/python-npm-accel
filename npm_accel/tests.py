@@ -108,6 +108,9 @@ class NpmAccelTestCase(TestCase):
         # Make sure 'yarn' is supported.
         accelerator.installer_name = 'yarn'
         assert accelerator.installer_method == accelerator.install_with_yarn
+        # Make sure 'pnpm' is supported.
+        accelerator.installer_name = 'pnpm'
+        assert accelerator.installer_method == accelerator.install_with_pnpm
         # Make sure 'npm-cache' is supported.
         accelerator.installer_name = 'npm-cache'
         assert accelerator.installer_method == accelerator.install_with_npm_cache
@@ -116,7 +119,7 @@ class NpmAccelTestCase(TestCase):
 
     def test_installers(self):
         """Make sure all of the supported installers actually work!"""
-        for installer_name in 'npm', 'yarn', 'npm-cache':
+        for installer_name in 'npm', 'yarn', 'pnpm', 'npm-cache':
             with TemporaryDirectory() as cache_directory:
                 with TemporaryDirectory() as project_directory:
                     write_package_metadata(project_directory, dict(npm='3.10.6'))

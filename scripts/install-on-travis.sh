@@ -25,6 +25,7 @@ fi
 # Upgrade and/or install the tools that we'll be using and benchmarking.
 sudo npm install -g npm
 sudo npm install -g yarn
+sudo npm install -g pnpm
 sudo npm install -g npm-cache
 
 # Try to work around the following rather obscure fatal error in
