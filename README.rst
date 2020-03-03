@@ -22,10 +22,10 @@ directory from scratch (e.g. continuous integration builds and deployments).
 I'm specifically not claiming that you will see any speed improvements if
 you're updating existing node_modules directories.
 
-The npm-accel program is currently tested on Python 2.7, 3.4, 3.5, 3.6 and PyPy
-(yes, it's written in Python, deal with it :-P). It's intended to work on UNIX
-systems like Linux and Mac OS X and specifically won't work on Windows (see
-`supported operating systems`_ for details).
+The npm-accel program is currently tested on Python 2.7, 3.5, 3.6, 3.7, 3.8 and
+PyPy (yes, it's written in Python, deal with it 😉). It's intended to work on
+UNIX systems like Linux and Mac OS X and specifically won't work on Windows
+(see `supported operating systems`_ for details).
 
 .. contents::
    :local:
@@ -36,7 +36,7 @@ Installation
 The `npm-accel` package is available on PyPI_ which means installation
 should be as simple as:
 
-.. code-block:: sh
+.. code-block:: console
 
    $ pip install npm-accel
 
@@ -44,7 +44,7 @@ There's actually a multitude of ways to install Python packages (e.g. the `per
 user site-packages directory`_, `virtual environments`_ or just installing
 system wide) and I have no intention of getting into that discussion here, so
 if this intimidates you then read up on your options before returning to these
-instructions ;-).
+instructions 😉.
 
 Alternatively if you are running Arch Linux, npm-accel is `available in AUR`_.
 
@@ -130,15 +130,15 @@ got fed up waiting for ``npm install`` to finish, specifically in the context
 of continuous integration builds and deployments (where you frequently start
 with an empty ``node_modules`` directory). It was developed in about a week
 without much prior knowledge about Node.js_ or npm_, which explains why it's
-written in Python :-P.
+written in Python 😛.
 
 The project was initially published with 95% test coverage and I was careful
 not to repeat the bugs I encountered in npm-cache_ and npm-fast-install_ while
-evaluating those tools :-).
+evaluating those tools 🙂.
 
 At the time of writing (June '17) npm-accel has been in active use at my
 employer for about nine months. During that time our builds have become bigger
-and slower and so I wanted npm-accel to be even faster :-). To this end I've
+and slower and so I wanted npm-accel to be even faster 🙂. To this end I've
 removed the use of ``npm prune`` and integrated support for yarn_ (it will be
 used automatically in preference over npm_ when it is installed).
 
@@ -181,7 +181,7 @@ Some notes about this benchmark:
   sixth row of the table above. This is because the original point of the
   benchmark (for me) was to find out whether it was even worth it to develop
   and publish npm-accel. That is to say, if it wouldn't have given a speed
-  improvement it wasn't worth my time, nor yours :-P.
+  improvement it wasn't worth my time, nor yours 😛.
 
 .. _supported operating systems:
 

@@ -1,10 +1,22 @@
 #!/usr/bin/env python
 
+# Setup script for the `npm-accel' package.
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 23, 2019
+# Last Change: March 3, 2020
 # URL: https://github.com/xolox/python-npm-accel
 
-"""Setup script for the `npm-accel` package."""
+"""
+Setup script for the `npm-accel` package.
+
+**python setup.py install**
+  Install from the working directory into the current Python environment.
+
+**python setup.py sdist**
+  Build a source distribution archive.
+
+**python setup.py bdist_wheel**
+  Build a wheel distribution archive.
+"""
 
 # Standard library modules.
 import codecs
@@ -17,7 +29,7 @@ from setuptools import find_packages, setup
 
 def get_contents(*args):
     """Get the contents of a file relative to the source distribution directory."""
-    with codecs.open(get_absolute_path(*args), 'r', 'utf-8') as handle:
+    with codecs.open(get_absolute_path(*args), 'r', 'UTF-8') as handle:
         return handle.read()
 
 
@@ -51,8 +63,8 @@ setup(
     version=get_version('npm_accel', '__init__.py'),
     description="Accelerator for npm, the Node.js package manager",
     long_description=get_contents('README.rst'),
-    url='https://github.com/xolox/python-npm-accel',
-    author='Peter Odding',
+    url='https://npm-accel.readthedocs.io',
+    author="Peter Odding",
     author_email='peter@peterodding.com',
     license='MIT',
     packages=find_packages(),
@@ -61,6 +73,7 @@ setup(
         'npm-accel = npm_accel.cli:main',
     ]),
     test_suite='npm_accel.tests',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -77,9 +90,10 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development',
