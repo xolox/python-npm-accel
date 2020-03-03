@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: June 29, 2017
+# Last Change: March 3, 2020
 # URL: https://github.com/xolox/python-npm-accel
 
 """Accelerator for npm, the Node.js package manager."""
@@ -19,9 +19,10 @@ import time
 # External dependencies.
 from chardet import detect
 from executor import ExternalCommandFailed, quote
-from humanfriendly import Timer, concatenate, format_path, format_table, parse_path
+from humanfriendly import Timer, format_path, parse_path
+from humanfriendly.tables import format_pretty_table
 from humanfriendly.terminal import ansi_wrap, terminal_supports_colors
-from humanfriendly.text import pluralize
+from humanfriendly.text import concatenate, pluralize
 from property_manager import PropertyManager, cached_property, mutable_property, required_property, set_property
 from verboselogs import VerboseLogger
 
@@ -295,7 +296,7 @@ class NpmAccel(PropertyManager):
                         percentage = '%.2f%%' % (timer.elapsed_time / (baseline / 100.0))
                     results.append((label, iteration_label, str(timer), percentage))
                 logger.info("Took %s for '%s' (%s).", timer, label, iteration_label)
-        print(format_table(results, column_names=["Approach", "Iteration", "Elapsed time", "Percentage"]))
+        print(format_pretty_table(results, column_names=["Approach", "Iteration", "Elapsed time", "Percentage"]))
 
     def clean_cache(self):
         """Remove old and unused archives from the cache directory."""

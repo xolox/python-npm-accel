@@ -2,6 +2,6 @@
 
 chardet >= 2.3.0
 executor >= 18.0
-humanfriendly >= 3.4.1
-property-manager >= 2.1
+humanfriendly >= 8.0
+property-manager >= 3.0
 verboselogs >= 1.5
