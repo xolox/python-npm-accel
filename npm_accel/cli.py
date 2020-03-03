@@ -49,6 +49,9 @@ Supported options:
     directory contains more than COUNT archives the least recently used
     archives are removed. Defaults to 20.
 
+    The environment variable $NPM_ACCEL_CACHE_LIMIT provides a convenient
+    way to customize this option in CI and build environments.
+
   -b, --benchmark
 
     Benchmark and compare the following installation methods:

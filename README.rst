@@ -96,7 +96,10 @@ cache key, to cache the complete "node_modules" directory in a tar archive.
    "``-c``, ``--cache-directory=DIR``",Set the pathname of the directory where the npm-accel cache is stored.
    "``-l``, ``--cache-limit=COUNT``","Set the maximum number of tar archives to preserve. When the cache
    directory contains more than ``COUNT`` archives the least recently used
-   archives are removed. Defaults to 20."
+   archives are removed. Defaults to 20.
+   
+   The environment variable ``$NPM_ACCEL_CACHE_LIMIT`` provides a convenient
+   way to customize this option in CI and build environments."
    "``-b``, ``--benchmark``","Benchmark and compare the following installation methods:
    
    1. npm install
