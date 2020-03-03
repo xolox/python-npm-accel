@@ -47,7 +47,7 @@ check: install
 test: install
 	@pip install --quiet --requirement=requirements-tests.txt
 	@py.test --cov --cov-report=html --no-cov-on-fail
-	@coverage report --fail-under=90 &>/dev/null
+	@coverage report --fail-under=90
 
 tox: install
 	@pip install --quiet tox
