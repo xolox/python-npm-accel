@@ -61,8 +61,13 @@ class NpmAccel(PropertyManager):
 
     @mutable_property
     def cache_limit(self):
-        """The maximum number of tar archives to preserve in the cache (an integer, defaults to 20)."""
-        return 20
+        """
+        The maximum number of tar archives to preserve in the cache (an integer, defaults to 20).
+
+        The environment variable ``$NPM_ACCEL_CACHE_LIMIT`` can be used to override the
+        default value of this option.
+        """
+        return int(os.environ.get('NPM_ACCEL_CACHE_LIMIT', '20'))
 
     @required_property
     def context(self):
