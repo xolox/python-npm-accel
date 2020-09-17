@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: March 3, 2020
+# Last Change: September 17, 2020
 # URL: https://github.com/xolox/python-npm-accel
 
 """
@@ -100,6 +100,7 @@ import sys
 
 # External dependencies.
 import coloredlogs
+from coloredlogs.syslog import SystemLogging
 from executor.contexts import create_context
 from humanfriendly import parse_path
 from humanfriendly.terminal import output, usage, warning
@@ -115,7 +116,7 @@ logger = logging.getLogger(__name__)
 def main():
     """Command line interface for the ``npm-accel`` program."""
     # Initialize logging to the terminal and system log.
-    coloredlogs.install(syslog=True)
+    coloredlogs.install()
     # Command line option defaults.
     program_opts = {}
     context_opts = {}
@@ -182,16 +183,28 @@ def main():
     except Exception as e:
         warning("Error: Failed to parse command line arguments! (%s)" % e)
         sys.exit(1)
-    # Perform the requested action(s).
-    try:
-        context = create_context(**context_opts)
-        program_opts["context"] = context
-        accelerator = NpmAccel(**program_opts)
-        method = getattr(accelerator, action)
-        method(directory)
-    except NpmAccelError as e:
-        warning("Error: %s", e)
-        sys.exit(1)
-    except Exception:
-        logger.exception("Encountered unexpected exception! Aborting ..")
-        sys.exit(1)
+    # Use a context manager to enable (and more importantly disable, at the
+    # appropriate time) system logging in an attempt to avoid the following:
+    #
+    #   AttributeError: 'SysLogHandler' object has no attribute 'socket'
+    #   https://github.com/xolox/python-rotate-backups/issues/9
+    #
+    # That link goes to the issue tracker of an unrelated project of mine, but
+    # really this issue isn't specific to npm-accel at all. It plagues all of
+    # my projects which use coloredlogs.install(syslog=True). It is not yet
+    # confirmed whether this context manager reliably resolves the issue,
+    # but that is my expectation :-).
+    with SystemLogging():
+        # Perform the requested action(s).
+        try:
+            context = create_context(**context_opts)
+            program_opts["context"] = context
+            accelerator = NpmAccel(**program_opts)
+            method = getattr(accelerator, action)
+            method(directory)
+        except NpmAccelError as e:
+            logger.error("%s", e)
+            sys.exit(1)
+        except Exception:
+            logger.exception("Encountered unexpected exception! Aborting ..")
+            sys.exit(2)
