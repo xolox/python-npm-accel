@@ -11,6 +11,25 @@ to `semantic versioning`_.
 .. _Keep a Changelog: http://keepachangelog.com/
 .. _semantic versioning: http://semver.org/
 
+`Release 2.0.1`_ (2020-09-17)
+-----------------------------
+
+For several years the following exception from the bowels of the Python
+interpreter has been plaguing my open source Python projects::
+
+  AttributeError: 'SysLogHandler' object has no attribute 'socket'
+
+See for example `rotate-backups issue #9`_. Today a colleague contacted me that
+he was stuck on this issue and could reliably reproduce it. That finally gave
+me a chance to try out an idea I've had for a while: To use a context manager
+to install and remove the logging handler at the appropriate time, before the
+Python interpreter teardown begins.
+
+It's yet to be confirmed whether this resolves the issue, but I expect so.
+
+.. _Release 2.0.1: https://github.com/xolox/python-npm-accel/compare/2.0...2.0.1
+.. _rotate-backups issue #9: https://github.com/xolox/python-rotate-backups/issues/9
+
 `Release 2.0`_ (2020-03-03)
 ---------------------------
 

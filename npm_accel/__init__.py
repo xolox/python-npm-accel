@@ -1,7 +1,7 @@
 # Accelerator for npm, the Node.js package manager.
 #
 # Author: Peter Odding <peter@peterodding.com>
-# Last Change: March 3, 2020
+# Last Change: September 17, 2020
 # URL: https://github.com/xolox/python-npm-accel
 
 """Accelerator for npm, the Node.js package manager."""
@@ -39,7 +39,7 @@ KNOWN_INSTALLERS = ("npm", "yarn", "pnpm", "npm-cache")
 """A tuple of strings with the names of supported Node.js installers."""
 
 # Semi-standard module versioning.
-__version__ = "2.0"
+__version__ = "2.0.1"
 
 # Initialize a logger for this program.
 logger = VerboseLogger(__name__)
